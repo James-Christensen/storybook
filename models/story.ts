@@ -5,13 +5,11 @@ export interface StoryRequest {
 }
 
 export interface StoryPage {
-  pageNumber: number;
   text: string;
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 export interface Story {
   title: string;
   pages: StoryPage[];
-  currentPage: number;
 } 

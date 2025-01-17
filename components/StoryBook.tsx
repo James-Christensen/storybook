@@ -84,10 +84,18 @@ export default function StoryBook({ story, onStartOver }: StoryBookProps) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
             {/* Image Side */}
             <div className="relative min-h-[40vh] lg:min-h-[60vh] rounded-box overflow-hidden bg-base-200">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="loading loading-spinner loading-lg text-primary"></span>
-                <span className="ml-4 opacity-50">Image placeholder</span>
-              </div>
+              {currentPageData.imageUrl ? (
+                <img 
+                  src={currentPageData.imageUrl} 
+                  alt={`Page ${currentPage} illustration`}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="loading loading-spinner loading-lg text-primary"></span>
+                  <span className="ml-4 opacity-50">Loading illustration...</span>
+                </div>
+              )}
             </div>
             
             {/* Text Side */}

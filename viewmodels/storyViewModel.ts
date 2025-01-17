@@ -1,58 +1,52 @@
-import { StoryRequest, Story, StoryPage } from '../models/story';
+import { Story, StoryRequest } from '../models/story';
 
-const MOCK_STORY_SEGMENTS = [
-  "Once upon a time, there was a brave {mainCharacter} who lived in a cozy house with their loyal friend, a {sidekick}.",
-  "One beautiful morning, they decided to go on an adventure to the {setting}, where magical things were known to happen.",
-  "At the {setting}, {mainCharacter} and {sidekick} discovered a mysterious glowing stone.",
-  "The stone began to sparkle, and suddenly they could understand the language of all the animals around them!",
-  "They spent the whole day making new friends and learning secrets about the {setting}.",
-  "As the sun began to set, {mainCharacter} and {sidekick} headed home, knowing this was just the beginning of their many adventures together."
-];
-
-const MOCK_IMAGES = [
-  "/placeholder/home.jpg",
-  "/placeholder/journey.jpg",
-  "/placeholder/discovery.jpg",
-  "/placeholder/magic.jpg",
-  "/placeholder/friends.jpg",
-  "/placeholder/sunset.jpg"
-];
+const SPECIAL_STORIES = {
+  MADDIE_AND_TOM: {
+    title: "Maddie and Tom's Magical Adventure",
+    pages: [
+      {
+        text: "Once upon a time, there was a wonderful little girl named Maddie who had a very special friend - a playful gray schnauzer named Tom. They loved going on adventures together!",
+        imageUrl: "https://placehold.co/800x600/9333ea/ffffff?text=Maddie+%26+Tom"
+      },
+      {
+        text: "One day, Maddie and Tom discovered a magical rainbow path in their backyard. Tom's whiskers started to sparkle with excitement!",
+        imageUrl: "https://placehold.co/800x600/3b82f6/ffffff?text=The+Magic+Path"
+      },
+      {
+        text: "Together they followed the path and found themselves in a beautiful garden where flowers sang sweet lullabies and butterflies danced in the air.",
+        imageUrl: "https://placehold.co/800x600/10b981/ffffff?text=Magical+Garden"
+      }
+    ]
+  }
+};
 
 export const storyViewModel = {
-  generateStoryText: async (request: StoryRequest): Promise<string[]> => {
-    console.log('Generating story text for:', request);
-    
-    // Replace placeholders in mock story segments
-    return MOCK_STORY_SEGMENTS.map(segment => 
-      segment
-        .replace(/{mainCharacter}/g, request.mainCharacter)
-        .replace(/{sidekick}/g, request.sidekick)
-        .replace(/{setting}/g, request.setting)
-    );
-  },
+  async createStory(request: StoryRequest): Promise<Story> {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-  generateImagesForStory: async (paragraphs: string[]): Promise<string[]> => {
-    console.log('Generating images for paragraphs:', paragraphs);
-    // For now, return mock image URLs
-    return MOCK_IMAGES.slice(0, paragraphs.length);
-  },
+    // Check for special character combination
+    if (request.mainCharacter === 'Maddie' && request.sidekick === 'Tom') {
+      return SPECIAL_STORIES.MADDIE_AND_TOM;
+    }
 
-  createStory: async (request: StoryRequest): Promise<Story> => {
-    console.log('Creating story with request:', request);
-    const paragraphs = await storyViewModel.generateStoryText(request);
-    const images = await storyViewModel.generateImagesForStory(paragraphs);
-    
-    // Create pages from paragraphs and images
-    const pages: StoryPage[] = paragraphs.map((text, index) => ({
-      pageNumber: index + 1,
-      text,
-      imageUrl: images[index] || '/placeholder/default.jpg'
-    }));
-
+    // Generate a standard story
     return {
-      title: `${request.mainCharacter}'s Adventure`,
-      pages,
-      currentPage: 1
+      title: `The Adventures of ${request.mainCharacter} and ${request.sidekick}`,
+      pages: [
+        {
+          text: `Once upon a time in ${request.setting}, there lived a wonderful ${request.mainCharacter} who had a best friend named ${request.sidekick}.`,
+          imageUrl: `https://placehold.co/800x600/9333ea/ffffff?text=Meet+${request.mainCharacter}`
+        },
+        {
+          text: `Every day, ${request.mainCharacter} and ${request.sidekick} would explore the magical ${request.setting}, finding new adventures and making new friends.`,
+          imageUrl: `https://placehold.co/800x600/3b82f6/ffffff?text=Exploring+${request.setting}`
+        },
+        {
+          text: `One day, they discovered a mysterious treasure that would change their lives forever...`,
+          imageUrl: `https://placehold.co/800x600/10b981/ffffff?text=The+Discovery`
+        }
+      ]
     };
   }
 }; 

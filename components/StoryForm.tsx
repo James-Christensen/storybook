@@ -3,6 +3,11 @@ import { StoryRequest } from '../models/story';
 
 const CHARACTER_PRESETS = [
   { 
+    name: 'Maddie', 
+    description: 'A brave and cheerful 2-year-old adventurer',
+    emoji: '👧'
+  },
+  { 
     name: 'Dragon', 
     description: 'A tiny, friendly dragon who loves cookies',
     emoji: '🐲'
@@ -30,6 +35,11 @@ const CHARACTER_PRESETS = [
 ];
 
 const PET_PRESETS = [
+  { 
+    name: 'Tom', 
+    description: 'A playful gray mini schnauzer with a big heart',
+    emoji: '🐕'
+  },
   { 
     name: 'Kitten', 
     description: 'A magical flying kitten',
