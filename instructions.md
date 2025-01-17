@@ -173,6 +173,7 @@ async function createStory(request: StoryRequest): Promise<Story> {
 
 ### Milestone 2: MVVM + Basic Integration
 - Implement storyViewModel.ts with mock or placeholder data for both text and image generation to confirm the end-to-end flow works
+- Improve UI, create a modern React app that simulates reading a book. Once the users story is generated they should be abe to navigate from one page to another. Each page should be the entire view and contain an image, 2-3 sentences of story text, and a page number. 
 
 ### Milestone 3: API Integration
 - Connect to the local Ollama endpoint for real text generation

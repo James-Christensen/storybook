@@ -4,8 +4,14 @@ export interface StoryRequest {
   setting: string;
 }
 
+export interface StoryPage {
+  pageNumber: number;
+  text: string;
+  imageUrl: string;
+}
+
 export interface Story {
   title: string;
-  paragraphs: string[];
-  images: string[];
+  pages: StoryPage[];
+  currentPage: number;
 } 
