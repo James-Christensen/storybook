@@ -158,25 +158,27 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     switch (step) {
       case 0:
         return (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-4">
               <h2 className="text-2xl font-bold text-primary-content">Choose your hero</h2>
               <div className="badge badge-sm badge-primary">Step 1</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
               {CHARACTER_PRESETS.map(preset => (
                 <button
                   key={preset.name}
                   type="button"
                   onClick={() => handlePresetSelect('character', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-colors border ${
-                    formData.mainCharacter === preset.name ? 'border-primary' : 'border-base-200'
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                    formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body p-2 items-center text-center">
-                    <span className="text-2xl">{preset.emoji}</span>
-                    <h3 className="font-bold text-sm">{preset.name}</h3>
-                    <p className="text-xs opacity-70 line-clamp-2">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-between p-6">
+                    <span className="text-4xl">{preset.emoji}</span>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
+                      <p className="text-sm opacity-70">{preset.description}</p>
+                    </div>
                   </div>
                 </button>
               ))}
@@ -204,25 +206,27 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
 
       case 1:
         return (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-4">
               <h2 className="text-2xl font-bold text-primary-content">Choose a sidekick</h2>
               <div className="badge badge-sm badge-primary">Step 2</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
               {PET_PRESETS.map(preset => (
                 <button
                   key={preset.name}
                   type="button"
                   onClick={() => handlePresetSelect('pet', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-colors border ${
-                    formData.sidekick === preset.name ? 'border-primary' : 'border-base-200'
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                    formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body p-2 items-center text-center">
-                    <span className="text-2xl">{preset.emoji}</span>
-                    <h3 className="font-bold text-sm">{preset.name}</h3>
-                    <p className="text-xs opacity-70 line-clamp-2">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-between p-6">
+                    <span className="text-4xl">{preset.emoji}</span>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
+                      <p className="text-sm opacity-70">{preset.description}</p>
+                    </div>
                   </div>
                 </button>
               ))}
@@ -250,25 +254,27 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
 
       case 2:
         return (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 mb-3">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center gap-2 mb-4">
               <h2 className="text-2xl font-bold text-primary-content">Choose your adventure place</h2>
               <div className="badge badge-sm badge-primary">Step 3</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
               {SETTING_PRESETS.map(preset => (
                 <button
                   key={preset.name}
                   type="button"
                   onClick={() => handlePresetSelect('setting', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-colors border ${
-                    formData.setting === preset.name ? 'border-primary' : 'border-base-200'
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                    formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body p-2 items-center text-center">
-                    <span className="text-2xl">{preset.emoji}</span>
-                    <h3 className="font-bold text-sm">{preset.name}</h3>
-                    <p className="text-xs opacity-70 line-clamp-2">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-between p-6">
+                    <span className="text-4xl">{preset.emoji}</span>
+                    <div className="text-center">
+                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
+                      <p className="text-sm opacity-70">{preset.description}</p>
+                    </div>
                   </div>
                 </button>
               ))}
@@ -297,8 +303,8 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="card bg-base-100 shadow-2xl w-full max-w-4xl">
         <form onSubmit={handleSubmit} className="card-body p-6">
-          <div className="h-[70vh] flex flex-col">
-            <div className="flex-1 overflow-y-auto px-2">
+          <div className="min-h-[60vh] flex flex-col">
+            <div className="flex-1">
               {renderStep()}
             </div>
 
