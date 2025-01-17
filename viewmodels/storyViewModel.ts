@@ -22,31 +22,48 @@ const SPECIAL_STORIES = {
 
 export const storyViewModel = {
   async createStory(request: StoryRequest): Promise<Story> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
     // Check for special character combination
     if (request.mainCharacter === 'Maddie' && request.sidekick === 'Tom') {
       return SPECIAL_STORIES.MADDIE_AND_TOM;
     }
 
-    // Generate a standard story
-    return {
-      title: `The Adventures of ${request.mainCharacter} and ${request.sidekick}`,
-      pages: [
-        {
-          text: `Once upon a time in ${request.setting}, there lived a wonderful ${request.mainCharacter} who had a best friend named ${request.sidekick}.`,
-          imageUrl: `https://placehold.co/800x600/9333ea/ffffff?text=Meet+${request.mainCharacter}`
+    try {
+      console.log('Sending story request:', request);
+      
+      // Generate story text using Ollama
+      const response = await fetch('/api/story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        {
-          text: `Every day, ${request.mainCharacter} and ${request.sidekick} would explore the magical ${request.setting}, finding new adventures and making new friends.`,
-          imageUrl: `https://placehold.co/800x600/3b82f6/ffffff?text=Exploring+${request.setting}`
-        },
-        {
-          text: `One day, they discovered a mysterious treasure that would change their lives forever...`,
-          imageUrl: `https://placehold.co/800x600/10b981/ffffff?text=The+Discovery`
-        }
-      ]
-    };
+        body: JSON.stringify(request),
+      });
+
+      const data = await response.json();
+      console.log('API response:', data);
+
+      if (!response.ok || data.error) {
+        throw new Error(data.error || 'Failed to generate story');
+      }
+
+      if (!data.paragraphs || !Array.isArray(data.paragraphs) || data.paragraphs.length === 0) {
+        throw new Error('Invalid story format received');
+      }
+
+      // Create story pages from paragraphs
+      const pages = data.paragraphs.map((text: string, index: number) => ({
+        text,
+        imageUrl: `https://placehold.co/800x600/${index === 0 ? '9333ea' : index === 1 ? '3b82f6' : '10b981'}/ffffff?text=Page+${index + 1}`
+      }));
+
+      return {
+        title: `The Adventures of ${request.mainCharacter} and ${request.sidekick}`,
+        pages
+      };
+
+    } catch (error) {
+      console.error('Error creating story:', error);
+      throw error;
+    }
   }
 }; 

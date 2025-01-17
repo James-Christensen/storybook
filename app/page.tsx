@@ -10,22 +10,22 @@ import { storyViewModel } from '../viewmodels/storyViewModel';
 export default function Home() {
   const [story, setStory] = useState<Story>();
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string>();
 
   const handleSubmit = async (request: StoryRequest) => {
     try {
       setIsLoading(true);
+      setError(undefined);
+      console.log('Submitting request:', request);
       const generatedStory = await storyViewModel.createStory(request);
+      console.log('Generated story:', generatedStory);
       setStory(generatedStory);
     } catch (error) {
       console.error('Error generating story:', error);
-      // TODO: Add error handling UI
+      setError(error instanceof Error ? error.message : 'Failed to create your story. Please try again.');
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleStartOver = () => {
-    setStory(undefined);
   };
 
   return (
@@ -37,10 +37,15 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-center">
             Storybook Creator
           </h1>
+          {error && (
+            <div className="alert alert-error max-w-md mx-auto mt-4">
+              <span>{error}</span>
+            </div>
+          )}
           <StoryForm onSubmit={handleSubmit} isLoading={isLoading} />
         </>
       ) : (
-        <StoryBook story={story} onStartOver={handleStartOver} />
+        <StoryBook story={story} onStartOver={() => setStory(undefined)} />
       )}
     </main>
   );
