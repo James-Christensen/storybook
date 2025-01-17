@@ -1,4 +1,4 @@
-import { Story } from '../models/story';
+import { Story } from '../app/models/story';
 
 interface StoryDisplayProps {
   story?: Story;
@@ -14,12 +14,12 @@ export default function StoryDisplay({ story }: StoryDisplayProps) {
       <h1 className="text-2xl font-bold mb-4">{story.title}</h1>
       
       <div className="space-y-6">
-        {story.paragraphs.map((paragraph, index) => (
+        {story.pages.map((page, index: number) => (
           <div key={index} className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <p className="text-gray-700">{paragraph}</p>
+              <p className="text-gray-700">{page.text}</p>
             </div>
-            {story.images[index] && (
+            {page.imageUrl && (
               <div className="w-full md:w-64">
                 <div className="bg-gray-200 w-full h-64 rounded-lg flex items-center justify-center">
                   {/* Placeholder for actual images */}

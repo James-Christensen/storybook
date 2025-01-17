@@ -1,4 +1,4 @@
-import { StoryRequest } from '../models/story';
+import { Story, StoryRequest } from '../../models/story';
 
 const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
 
