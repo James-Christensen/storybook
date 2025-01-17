@@ -1,4 +1,4 @@
-import { Story, StoryRequest } from '../models/story';
+import { Story, StoryRequest, StoryPage } from '../models/story';
 
 const API_ENDPOINTS = {
   STORY: '/api/story'
@@ -36,14 +36,18 @@ export const storyViewModel = {
         throw new Error(data.error || 'Unable to create your story right now. Please try again.');
       }
 
-      if (!data.paragraphs || !Array.isArray(data.paragraphs) || data.paragraphs.length === 0) {
+      if (!data.pages || !Array.isArray(data.pages) || data.pages.length === 0) {
         throw new Error('Oops! Something went wrong with the story generation. Please try again.');
       }
 
-      // Create story pages from paragraphs
-      const pages = data.paragraphs.map((text: string, index: number) => ({
-        text,
-        imageUrl: `https://placehold.co/800x600/${index === 0 ? '9333ea' : index === 1 ? '3b82f6' : '10b981'}/ffffff?text=Page+${index + 1}`
+      // For now, keep using placeholder images but maintain the new structure
+      const pages = data.pages.map((page: Omit<StoryPage, 'imageUrl'>) => ({
+        ...page,
+        imageUrl: `https://placehold.co/800x600/${
+          page.pageNumber === 1 ? '9333ea' : 
+          page.pageNumber === 2 ? '3b82f6' : 
+          '10b981'
+        }/ffffff?text=Page+${page.pageNumber}`
       }));
 
       return {

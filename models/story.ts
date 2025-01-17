@@ -5,7 +5,9 @@ export interface StoryRequest {
 }
 
 export interface StoryPage {
+  pageNumber: number;
   text: string;
+  imageDescription: string;
   imageUrl?: string;
 }
 
