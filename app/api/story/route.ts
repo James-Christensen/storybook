@@ -1,6 +1,7 @@
 import { Story, StoryRequest } from '../../models/story';
 
 const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
+const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
 
 const STORY_PROMPT = `
 Create a short children's story about {mainCharacter} and their friend {sidekick} having an adventure in {setting}.
@@ -44,7 +45,7 @@ export async function POST(request: Request) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'qwen2.5:32b',
+        model: OLLAMA_MODEL,
         prompt: prompt,
         format: 'json',
         stream: false,
