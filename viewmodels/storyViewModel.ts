@@ -14,11 +14,11 @@ const TIMEOUT_MS = 600000; // 10 minutes
 // Art style and quality modifiers to enhance image generation
 const STYLE_MODIFIERS = {
   artStyle: 'children\'s book illustration style, digital art, vibrant colors, line art, cel shaded',
-  quality: 'highly detailed, masterful, professional quality',
+  quality: 'highly detailed, vivid colors, strong lines,',
   lighting: 'soft ambient lighting, gentle shadows',
   composition: 'rule of thirds, dynamic composition, balanced framing',
   atmosphere: 'whimsical, magical, enchanting',
-  rendering: '4k, sharp focus, intricate details'
+  rendering: ''
 } as const;
 
 // Import character presets for consistent descriptions
