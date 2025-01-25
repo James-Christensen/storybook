@@ -11,6 +11,16 @@ const API_ENDPOINTS = {
 // a streaming response mechanism for better user experience
 const TIMEOUT_MS = 600000; // 10 minutes
 
+// Art style and quality modifiers to enhance image generation
+const STYLE_MODIFIERS = {
+  artStyle: 'children\'s book illustration style, digital art, vibrant colors',
+  quality: 'highly detailed, masterful, professional quality',
+  lighting: 'soft ambient lighting, gentle shadows',
+  composition: 'rule of thirds, dynamic composition, balanced framing',
+  atmosphere: 'whimsical, magical, enchanting',
+  rendering: '4k, sharp focus, intricate details'
+} as const;
+
 const IMAGE_CONFIG = {
   serverIP: '192.168.0.131',
   port: '7860',
@@ -20,12 +30,62 @@ const IMAGE_CONFIG = {
 };
 
 export const storyViewModel = {
+  enhancePrompt(imageDescription: string): string {
+    console.log('Original image description:', imageDescription);
+
+    // Split description into components for analysis
+    const sentences = imageDescription.split('. ').filter(Boolean);
+    
+    // Extract key elements from the description
+    const mainSubjects = sentences[0] || ''; // Usually contains the main subjects and setting
+    const actions = sentences[1] || ''; // Usually contains actions and emotions
+    const details = sentences.slice(2).join('. ') || ''; // Additional details
+
+    // Construct enhanced prompt following the rules
+    const enhancedPrompt = [
+      // 1. Subject and Setting (from original)
+      mainSubjects,
+
+      // 2. Actions, Poses, and Emotions (from original + enhancements)
+      actions,
+
+      // 3. Atmosphere and Mood
+      STYLE_MODIFIERS.atmosphere,
+
+      // 4. Artistic Style
+      STYLE_MODIFIERS.artStyle,
+
+      // 5. Details and Quality
+      STYLE_MODIFIERS.quality,
+
+      // 6. Additional Details (from original)
+      details,
+
+      // 7. Lighting
+      STYLE_MODIFIERS.lighting,
+
+      // 8. Composition
+      STYLE_MODIFIERS.composition,
+
+      // 9. Technical Quality
+      STYLE_MODIFIERS.rendering
+    ]
+      .filter(Boolean) // Remove empty strings
+      .join(', ');
+
+    console.log('Enhanced prompt:', enhancedPrompt);
+    return enhancedPrompt;
+  },
+
   async generateImage(imageDescription: string, pageNumber: number): Promise<string> {
     console.log(`\n=== Generating image for page ${pageNumber} ===`);
-    console.log('Image prompt:', imageDescription);
+    
+    // Transform the basic image description into an enhanced prompt
+    const enhancedPrompt = this.enhancePrompt(imageDescription);
+    console.log('Using enhanced prompt:', enhancedPrompt);
     
     const requestBody = {
-      prompt: imageDescription,
+      prompt: enhancedPrompt,
       model: 'flux_1_schnell_q5p.ckpt',
       loras: [],
       seed: -1,
