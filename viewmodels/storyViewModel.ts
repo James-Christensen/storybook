@@ -13,13 +13,16 @@ const TIMEOUT_MS = 600000; // 10 minutes
 
 // Art style and quality modifiers to enhance image generation
 const STYLE_MODIFIERS = {
-  artStyle: 'children\'s book illustration style, digital art, vibrant colors',
+  artStyle: 'children\'s book illustration style, digital art, vibrant colors, line art, cel shaded',
   quality: 'highly detailed, masterful, professional quality',
   lighting: 'soft ambient lighting, gentle shadows',
   composition: 'rule of thirds, dynamic composition, balanced framing',
   atmosphere: 'whimsical, magical, enchanting',
   rendering: '4k, sharp focus, intricate details'
 } as const;
+
+// Import character presets for consistent descriptions
+import { CHARACTER_PRESETS, PET_PRESETS } from '../components/StoryForm';
 
 const IMAGE_CONFIG = {
   serverIP: '192.168.0.131',
@@ -29,12 +32,65 @@ const IMAGE_CONFIG = {
   }
 };
 
+interface CharacterDescription {
+  name: string;
+  description: string;
+}
+
 export const storyViewModel = {
+  // Store character descriptions for the current story
+  currentCharacters: new Map<string, CharacterDescription>(),
+
+  initializeCharacterDescriptions(request: StoryRequest) {
+    // Clear any existing character descriptions
+    this.currentCharacters.clear();
+
+    // Find the visual descriptions from presets
+    const mainCharacterPreset = CHARACTER_PRESETS.find(preset => preset.name === request.mainCharacter);
+    const sidekickPreset = PET_PRESETS.find(preset => preset.name === request.sidekick);
+
+    // Set the main character description
+    this.currentCharacters.set(request.mainCharacter, {
+      name: request.mainCharacter,
+      description: mainCharacterPreset?.visualDescription || 
+        "A three year old toddler girl with brown hair, blue eyes, wearing a pink t-shirt, blue jeans, and pink converse shoes" // Default Maddie description
+    });
+
+    // Set the sidekick description
+    this.currentCharacters.set(request.sidekick, {
+      name: request.sidekick,
+      description: sidekickPreset?.visualDescription || 
+        "a grey miniature schnauzer puppy with a blue collar" // Default Tom description
+    });
+
+    console.log('Initialized character descriptions:', {
+      mainCharacter: this.currentCharacters.get(request.mainCharacter),
+      sidekick: this.currentCharacters.get(request.sidekick)
+    });
+  },
+
+  replaceCharacterNamesWithDescriptions(text: string): string {
+    let enhancedText = text;
+    
+    // Replace each character name with their description
+    this.currentCharacters.forEach((character) => {
+      // Create a regex that matches the character name as a whole word
+      const nameRegex = new RegExp(`\\b${character.name}\\b`, 'g');
+      enhancedText = enhancedText.replace(nameRegex, character.description);
+    });
+
+    return enhancedText;
+  },
+
   enhancePrompt(imageDescription: string): string {
     console.log('Original image description:', imageDescription);
 
+    // Replace character names with their descriptions
+    const descriptionWithCharacters = this.replaceCharacterNamesWithDescriptions(imageDescription);
+    console.log('Description with character details:', descriptionWithCharacters);
+
     // Split description into components for analysis
-    const sentences = imageDescription.split('. ').filter(Boolean);
+    const sentences = descriptionWithCharacters.split('. ').filter(Boolean);
     
     // Extract key elements from the description
     const mainSubjects = sentences[0] || ''; // Usually contains the main subjects and setting
@@ -43,7 +99,7 @@ export const storyViewModel = {
 
     // Construct enhanced prompt following the rules
     const enhancedPrompt = [
-      // 1. Subject and Setting (from original)
+      // 1. Subject and Setting (from original with character descriptions)
       mainSubjects,
 
       // 2. Actions, Poses, and Emotions (from original + enhancements)
@@ -150,6 +206,9 @@ export const storyViewModel = {
     try {
       console.log('\n=== Starting Story Generation ===');
       console.log('Story request:', request);
+
+      // Initialize character descriptions for this story
+      this.initializeCharacterDescriptions(request);
       
       // Generate story text using Ollama with timeout
       const controller = new AbortController();

@@ -1,68 +1,87 @@
 import { useState } from 'react';
 import { StoryRequest } from '../models/story';
 
-const CHARACTER_PRESETS = [
+interface CharacterPreset {
+  name: string;
+  description: string;
+  visualDescription: string;
+  emoji: string;
+}
+
+export const CHARACTER_PRESETS: CharacterPreset[] = [
   { 
     name: 'Maddie', 
-    description: 'A brave and cheerful 2-year-old adventurer',
+    description: 'A brave and cheerful toddler adventurer',
+    visualDescription: 'A three year old toddler girl with brown hair, blue eyes, wearing a pink t-shirt, blue jeans, and pink converse shoes',
     emoji: '👧'
   },
   { 
     name: 'Dragon', 
     description: 'A tiny, friendly dragon who loves cookies',
+    visualDescription: 'A small, friendly dragon with iridescent purple scales, rounded spikes along its back, soft green eyes, and tiny wings. The dragon is wearing a blue bandana around its neck and has a cookie-crumb-covered snout',
     emoji: '🐲'
   },
   { 
     name: 'Fairy', 
     description: 'A curious fairy with sparkly wings',
+    visualDescription: 'A child-sized fairy with translucent rainbow wings that sparkle in the light, wearing a dress made of flower petals in pastel colors, with silver hair tied in two buns, and carrying a crystal wand',
     emoji: '🧚'
   },
   { 
     name: 'Robot', 
     description: 'A helpful robot learning about feelings',
+    visualDescription: 'A small, rounded robot with a smooth white and blue metal exterior, expressive LED eyes that change color with emotions, retractable arms, and a digital heart display on its chest that glows softly',
     emoji: '🤖'
   },
   { 
     name: 'Unicorn', 
     description: 'A colorful unicorn who makes rainbows',
+    visualDescription: 'A young unicorn with a pearlescent white coat, flowing rainbow mane and tail, golden hooves, and a spiral horn that sparkles with all colors of the rainbow. The unicorn has kind purple eyes and leaves a trail of sparkles when it walks',
     emoji: '🦄'
   },
   { 
     name: 'Custom', 
     description: 'Create your own character',
+    visualDescription: '',
     emoji: '✨'
   },
 ];
 
-const PET_PRESETS = [
+export const PET_PRESETS: CharacterPreset[] = [
   { 
     name: 'Tom', 
     description: 'A playful gray mini schnauzer with a big heart',
+    visualDescription: 'a grey miniature schnauzer puppy with a blue collar',
     emoji: '🐕'
   },
   { 
     name: 'Kitten', 
     description: 'A magical flying kitten',
+    visualDescription: 'A small white and orange tabby kitten with tiny silver wings, wearing a purple ribbon around its neck, and having bright golden eyes that sparkle with magic',
     emoji: '🐱'
   },
   { 
     name: 'Puppy', 
     description: 'A bouncy puppy with a glowing nose',
+    visualDescription: 'A golden retriever puppy with fluffy fur, floppy ears, a red collar with a star-shaped tag, and a nose that glows with a soft blue light when excited',
     emoji: '🐶'
   },
   { 
     name: 'Baby Dragon', 
     description: 'A tiny dragon that hiccups bubbles',
+    visualDescription: 'A baby dragon the size of a kitten, with soft teal scales, rounded baby horns, tiny wings, and a pink belly. When it hiccups, it produces rainbow-colored bubbles',
     emoji: '🐉'
   },
   { 
     name: 'Bunny', 
     description: 'A rabbit that can hop through clouds',
+    visualDescription: 'A fluffy white rabbit with extra-long ears tipped in silver, wearing a small backpack made of clouds, and having eyes that reflect the sky. Its fur seems to float weightlessly when it jumps',
     emoji: '🐰'
   },
   { 
     name: 'Custom', 
     description: 'Create your own sidekick',
+    visualDescription: '',
     emoji: '✨'
   },
 ];
