@@ -86,7 +86,7 @@ Provide a simple, child-friendly user interface in React and Next.js for creatin
 {
   "prompt": "",
   "style": "cartoon",
-  "size": "512x512"
+  "size": "768x768"
 }
 ```
 - Output: Base64 or image URL
