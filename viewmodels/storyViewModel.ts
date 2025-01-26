@@ -89,6 +89,11 @@ export const storyViewModel = {
     const descriptionWithCharacters = this.replaceCharacterNamesWithDescriptions(imageDescription);
     console.log('Description with character details:', descriptionWithCharacters);
 
+    // Check if Maddie is the main character to add trigger word
+    const isMaddie = Array.from(this.currentCharacters.values()).some(
+      char => char.name === 'Maddie'
+    );
+
     // Split description into components for analysis
     const sentences = descriptionWithCharacters.split('. ').filter(Boolean);
     
@@ -99,6 +104,9 @@ export const storyViewModel = {
 
     // Construct enhanced prompt following the rules
     const enhancedPrompt = [
+      // 0. Maddie trigger word if applicable
+      isMaddie ? 'mddie' : '',
+
       // 1. Subject and Setting (from original with character descriptions)
       mainSubjects,
 
@@ -140,10 +148,32 @@ export const storyViewModel = {
     const enhancedPrompt = this.enhancePrompt(imageDescription);
     console.log('Using enhanced prompt:', enhancedPrompt);
     
+    // Check if Maddie is the main character and add her Lora if she is
+    const isMaddie = Array.from(this.currentCharacters.values()).some(
+      char => char.name === 'Maddie'
+    );
+
+    const loras = isMaddie ? [
+      {
+        weight: 0.7,
+        file: "maddie_lora_lora_f16.ckpt"
+      }
+    ] : [];
+
+    // Log Lora usage
+    if (loras.length > 0) {
+      console.log('Using Loras:', loras.map(lora => ({
+        file: lora.file,
+        weight: lora.weight
+      })));
+    } else {
+      console.log('No Loras being used for this image');
+    }
+
     const requestBody = {
       prompt: enhancedPrompt,
       model: 'flux_1_schnell_q5p.ckpt',
-      loras: [],
+      loras,
       seed: -1,
       guidance_scale: 1.0,
       steps: 4,
@@ -157,7 +187,8 @@ export const storyViewModel = {
       model: requestBody.model,
       sampler: requestBody.sampler,
       steps: requestBody.steps,
-      size: `${requestBody.width}x${requestBody.height}`
+      size: `${requestBody.width}x${requestBody.height}`,
+      loras: requestBody.loras
     });
 
     try {
