@@ -179,7 +179,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
         return (
           <div className="flex flex-col h-full">
             <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-bold text-primary-content">Choose your hero</h2>
+              <h2 className="text-2xl font-bold text-secondary">Choose your hero</h2>
               <div className="badge badge-sm badge-primary">Step 1</div>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
