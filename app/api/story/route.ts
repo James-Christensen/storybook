@@ -4,13 +4,13 @@ const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
 const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
 
 const STORY_PROMPT = `
-Create a short children's story about {mainCharacter} and their friend {sidekick} having an adventure in {setting}.
-The story should be magical, fun, and suitable for young children.
+Create a magical children's story about {mainCharacter} and their friend {sidekick} having an adventure in {setting}.
+The story should be enchanting, fun, and suitable for young children aged 2-6.
 
-Return the story as a JSON array of exactly 3 pages. Each page should contain:
-- pageNumber: The page number (1-3)
-- text: 2-3 sentences of story text
-- imageDescription: A detailed description for generating an illustration of that page's scene. Focus on describing the visual elements, characters' appearances, and the setting.
+Return the story as a JSON array of exactly 6 pages. Each page should contain:
+- pageNumber: The page number (1-6)
+- text: 2-3 sentences of story text that are easy to read aloud
+- imageDescription: A detailed description for generating an illustration of that page's scene. Focus on describing the visual elements, characters' appearances, emotions, and the setting.
 
 The response must be valid JSON in this format:
 {
@@ -24,7 +24,24 @@ The response must be valid JSON in this format:
   ]
 }
 
-Make the story engaging and the image descriptions vivid and detailed.
+Follow this 6-page story structure:
+1. Opening Scene: Introduce {mainCharacter} and {sidekick} in their everyday setting, showing their special friendship and personalities
+2. Magical Discovery: They discover something extraordinary in {setting} that sparks their curiosity and sets up the adventure
+3. First Challenge: They encounter an interesting problem or puzzle that needs solving together
+4. Working Together: {mainCharacter} and {sidekick} combine their unique abilities to tackle the challenge
+5. Moment of Success: Their teamwork and friendship leads to a magical or surprising result
+6. Happy Ending: A heartwarming conclusion where they celebrate their adventure and maybe keep a special memory or magical keepsake
+
+Important guidelines:
+- Keep the tone warm and friendly throughout
+- Include moments of humor and wonder
+- Show the characters expressing different emotions
+- Emphasize friendship, kindness, and working together
+- Make sure each page's text flows naturally when read aloud
+- Include vivid sensory details in both text and image descriptions
+- Make the image descriptions detailed enough to generate consistent character appearances across all illustrations
+
+Make the story engaging and the image descriptions vivid and detailed, maintaining consistent character appearances throughout all scenes.
 `;
 
 export async function POST(request: Request) {
