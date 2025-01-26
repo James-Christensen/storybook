@@ -254,7 +254,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   type="button"
                   tabIndex={-1}
                   onClick={() => handlePresetSelect('character', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
                     formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
@@ -303,7 +303,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   type="button"
                   tabIndex={-1}
                   onClick={() => handlePresetSelect('pet', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation  ${
                     formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
@@ -352,7 +352,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   type="button"
                   tabIndex={-1}
                   onClick={() => handlePresetSelect('setting', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
                     formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
