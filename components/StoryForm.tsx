@@ -178,11 +178,11 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
       case 0:
         return (
           <div className="flex flex-col h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-bold text-secondary">Choose your hero</h2>
-              <div className="badge badge-sm badge-primary">Step 1</div>
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <h2 className="text-3xl font-bold text-secondary">Choose your hero</h2>
+              <div className="badge badge-md badge-primary">Step 1</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
               {CHARACTER_PRESETS.map(preset => (
                 <button
                   key={preset.name}
@@ -192,20 +192,20 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                     formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body flex flex-col items-center justify-between p-6">
-                    <span className="text-4xl">{preset.emoji}</span>
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
-                      <p className="text-sm opacity-70">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                    <span className="text-5xl mb-2">{preset.emoji}</span>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">{preset.name}</h3>
+                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
                     </div>
                   </div>
                 </button>
               ))}
             </div>
             {customInputs.character && (
-              <div className="form-control mt-2">
-                <label className="label py-1">
-                  <span className="label-text">What's your hero's name?</span>
+              <div className="form-control mt-6">
+                <label className="label justify-center">
+                  <span className="label-text text-lg">What's your hero's name?</span>
                 </label>
                 <input
                   type="text"
@@ -215,7 +215,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                     if (e.target.value) setStep(1);
                   }}
                   placeholder="Enter your hero's name"
-                  className="input input-bordered input-sm"
+                  className="input input-bordered w-full max-w-xs mx-auto"
                   autoFocus
                 />
               </div>
@@ -226,11 +226,11 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
       case 1:
         return (
           <div className="flex flex-col h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-bold text-primary-content">Choose a sidekick</h2>
-              <div className="badge badge-sm badge-primary">Step 2</div>
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <h2 className="text-3xl font-bold text-secondary">Choose a sidekick</h2>
+              <div className="badge badge-md badge-primary">Step 2</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
               {PET_PRESETS.map(preset => (
                 <button
                   key={preset.name}
@@ -240,20 +240,20 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                     formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body flex flex-col items-center justify-between p-6">
-                    <span className="text-4xl">{preset.emoji}</span>
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
-                      <p className="text-sm opacity-70">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                    <span className="text-5xl mb-2">{preset.emoji}</span>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">{preset.name}</h3>
+                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
                     </div>
                   </div>
                 </button>
               ))}
             </div>
             {customInputs.pet && (
-              <div className="form-control mt-2">
-                <label className="label py-1">
-                  <span className="label-text">What's your sidekick's name?</span>
+              <div className="form-control mt-6">
+                <label className="label justify-center">
+                  <span className="label-text text-lg">What's your sidekick's name?</span>
                 </label>
                 <input
                   type="text"
@@ -263,7 +263,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                     if (e.target.value) setStep(2);
                   }}
                   placeholder="Enter your sidekick's name"
-                  className="input input-bordered input-sm"
+                  className="input input-bordered w-full max-w-xs mx-auto"
                   autoFocus
                 />
               </div>
@@ -274,11 +274,11 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
       case 2:
         return (
           <div className="flex flex-col h-full">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-bold text-primary-content">Choose your adventure place</h2>
-              <div className="badge badge-sm badge-primary">Step 3</div>
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <h2 className="text-3xl font-bold text-secondary">Choose your adventure place</h2>
+              <div className="badge badge-md badge-primary">Step 3</div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 flex-1">
+            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
               {SETTING_PRESETS.map(preset => (
                 <button
                   key={preset.name}
@@ -288,27 +288,27 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                     formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
-                  <div className="card-body flex flex-col items-center justify-between p-6">
-                    <span className="text-4xl">{preset.emoji}</span>
-                    <div className="text-center">
-                      <h3 className="text-lg font-bold mb-2">{preset.name}</h3>
-                      <p className="text-sm opacity-70">{preset.description}</p>
+                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                    <span className="text-5xl mb-2">{preset.emoji}</span>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-bold">{preset.name}</h3>
+                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
                     </div>
                   </div>
                 </button>
               ))}
             </div>
             {customInputs.setting && (
-              <div className="form-control mt-2">
-                <label className="label py-1">
-                  <span className="label-text">What's your magical place called?</span>
+              <div className="form-control mt-6">
+                <label className="label justify-center">
+                  <span className="label-text text-lg">What's your magical place called?</span>
                 </label>
                 <input
                   type="text"
                   value={formData.setting}
                   onChange={(e) => setFormData(prev => ({ ...prev, setting: e.target.value }))}
                   placeholder="Enter the name of your place"
-                  className="input input-bordered input-sm"
+                  className="input input-bordered w-full max-w-xs mx-auto"
                   autoFocus
                 />
               </div>
@@ -321,38 +321,39 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4">
       <div className="card bg-base-100 shadow-2xl w-full max-w-4xl">
-        <form onSubmit={handleSubmit} className="card-body p-6">
+        <form onSubmit={handleSubmit} className="card-body p-8">
           <div className="min-h-[60vh] flex flex-col">
             <div className="flex-1">
               {renderStep()}
             </div>
 
-            <div className="pt-3 mt-3 border-t border-base-300">
+            <div className="pt-6 mt-6 border-t border-base-300">
               <div className="flex justify-between items-center">
                 {step > 0 && (
                   <button
                     type="button"
                     onClick={() => setStep(prev => prev - 1)}
-                    className="btn btn-sm btn-ghost"
+                    className="btn btn-ghost"
                   >
                     ← Back
                   </button>
                 )}
+                <div className="flex-1" />
                 {step === 2 && formData.setting && (
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
+                    className={`btn btn-primary btn-lg ${isLoading ? 'loading' : ''}`}
                   >
                     {isLoading ? 'Creating Story...' : 'Start Adventure!'}
                   </button>
                 )}
               </div>
 
-              <ul className="steps steps-horizontal w-full mt-3">
-                <li className={`step step-sm ${step >= 0 ? 'step-primary' : ''}`}>Hero</li>
-                <li className={`step step-sm ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
-                <li className={`step step-sm ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
+              <ul className="steps steps-horizontal w-full mt-6">
+                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Hero</li>
+                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
+                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
               </ul>
             </div>
           </div>
