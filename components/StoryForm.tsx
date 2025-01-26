@@ -78,6 +78,12 @@ export const PET_PRESETS: CharacterPreset[] = [
     visualDescription: 'A fluffy white rabbit with extra-long ears tipped in silver, wearing a small backpack made of clouds, and having eyes that reflect the sky. Its fur seems to float weightlessly when it jumps',
     emoji: '🐰'
   },
+  {
+    name: 'None',
+    description: 'Create a story without a sidekick',
+    visualDescription: '',
+    emoji: '🌟'
+  },
   { 
     name: 'Custom', 
     description: 'Create your own sidekick',
@@ -108,6 +114,31 @@ const SETTING_PRESETS = [
     emoji: '💎'
   },
   { 
+    name: 'Space Station', 
+    description: 'A friendly space station with robot helpers',
+    emoji: '🚀'
+  },
+  { 
+    name: 'Candy Land', 
+    description: 'A sweet world where everything is made of treats',
+    emoji: '🍭'
+  },
+  { 
+    name: 'Bubble City', 
+    description: 'An underwater city protected by giant bubbles',
+    emoji: '🫧'
+  },
+  { 
+    name: 'Dragon Valley', 
+    description: 'A peaceful valley where baby dragons play',
+    emoji: '🐉'
+  },
+  { 
+    name: 'Star Garden', 
+    description: 'A magical garden where you can pick falling stars',
+    emoji: '⭐'
+  },
+  { 
     name: 'Custom', 
     description: 'Create your own magical place',
     emoji: '✨'
@@ -124,7 +155,8 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
   const [formData, setFormData] = useState<StoryRequest>({
     mainCharacter: '',
     sidekick: '',
-    setting: ''
+    setting: '',
+    pageCount: 6 // Default to 6 pages
   });
   const [customInputs, setCustomInputs] = useState({
     character: false,
@@ -150,6 +182,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
         break;
       case 'setting':
         setFormData(prev => ({ ...prev, setting: value }));
+        if (!customInputs.setting) setStep(3);
         break;
     }
   };
@@ -173,6 +206,38 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     onSubmit(formData);
   };
 
+  const renderPageCountSelector = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <h2 className="text-3xl font-bold text-secondary">Choose story length</h2>
+        <div className="badge badge-md badge-primary">Step 4</div>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
+        {[3, 4, 5, 6, 7, 8, 9, 10].map(count => (
+          <button
+            key={count}
+            type="button"
+            tabIndex={-1}
+            onClick={() => setFormData(prev => ({ ...prev, pageCount: count }))}
+            className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+              formData.pageCount === count ? 'border-primary border-2' : 'border-base-200'
+            }`}
+          >
+            <div className="card-body flex flex-col items-center justify-center text-center p-6">
+              <span className="text-4xl font-bold mb-2">{count}</span>
+              <p className="text-sm opacity-70">
+                {count <= 4 ? 'Quick Story' :
+                 count <= 6 ? 'Regular Story' :
+                 count <= 8 ? 'Longer Story' :
+                 'Epic Adventure'}
+              </p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderStep = () => {
     switch (step) {
       case 0:
@@ -187,8 +252,9 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                 <button
                   key={preset.name}
                   type="button"
+                  tabIndex={-1}
                   onClick={() => handlePresetSelect('character', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
                     formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
@@ -235,8 +301,9 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                 <button
                   key={preset.name}
                   type="button"
+                  tabIndex={-1}
                   onClick={() => handlePresetSelect('pet', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
                     formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
@@ -283,8 +350,9 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                 <button
                   key={preset.name}
                   type="button"
+                  tabIndex={-1}
                   onClick={() => handlePresetSelect('setting', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border ${
+                  className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
                     formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
                   }`}
                 >
@@ -315,6 +383,9 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             )}
           </div>
         );
+
+      case 3:
+        return renderPageCountSelector();
     }
   };
 
@@ -339,7 +410,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   </button>
                 )}
                 <div className="flex-1" />
-                {step === 2 && formData.setting && (
+                {step === 3 && formData.pageCount && (
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -354,6 +425,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                 <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Hero</li>
                 <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
                 <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
+                <li className={`step ${step >= 3 ? 'step-primary' : ''}`}>Length</li>
               </ul>
             </div>
           </div>

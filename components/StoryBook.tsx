@@ -79,16 +79,18 @@ export default function StoryBook({ story, onStartOver }: StoryBookProps) {
 
   return (
     <div className="min-h-[80vh] flex flex-col px-4 py-8 gap-4">
+      {/* Book Page */}
       <div className="card bg-base-100 shadow-xl flex-1">
-        <div className="card-body p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-            {/* Image Side */}
-            <div className="relative min-h-[40vh] lg:min-h-[60vh] rounded-box overflow-hidden bg-base-200">
+        <div className="card-body p-4 md:p-8">
+          {/* Main Content Area */}
+          <div className="flex flex-col h-full">
+            {/* Image Container - Takes up top 2/3 on mobile and tablet */}
+            <div className="relative w-full h-0 pb-[66.67%] mb-4 rounded-xl overflow-hidden bg-base-200">
               {currentPageData.imageUrl ? (
                 <img 
                   src={currentPageData.imageUrl} 
                   alt={`Page ${currentPage} illustration`}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="absolute inset-0 w-full h-full object-contain"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -97,38 +99,40 @@ export default function StoryBook({ story, onStartOver }: StoryBookProps) {
                 </div>
               )}
             </div>
-            
-            {/* Text Side */}
-            <div className="flex flex-col justify-between h-full">
-              <div className="space-y-6">
-                <h2 className="text-3xl font-bold">Page {currentPage}</h2>
-                <p className="text-2xl leading-relaxed">{currentPageData.text}</p>
+
+            {/* Text Container - Takes up bottom 1/3 on mobile and tablet */}
+            <div className="flex-1 flex flex-col justify-between min-h-[33.33%] bg-base-200/20 rounded-xl p-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold">Page {currentPage}</h2>
+                  <span className="text-sm font-medium opacity-60">
+                    {currentPage} of {totalPages}
+                  </span>
+                </div>
+                <p className="text-lg md:text-xl leading-relaxed">{currentPageData.text}</p>
               </div>
               
-              <div className="flex items-center justify-between pt-8 border-t border-base-300 mt-8">
+              {/* Navigation Controls */}
+              <div className="flex items-center justify-between pt-4 mt-4 border-t border-base-300">
                 <button
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
-                  className="btn btn-primary btn-lg"
+                  className="btn btn-primary"
                 >
                   ← Previous
                 </button>
                 
-                <span className="text-xl font-medium">
-                  {currentPage} of {totalPages}
-                </span>
-                
                 {isLastPage ? (
                   <button
                     onClick={onStartOver}
-                    className="btn btn-secondary btn-lg"
+                    className="btn btn-secondary"
                   >
                     Start New Story
                   </button>
                 ) : (
                   <button
                     onClick={goToNextPage}
-                    className="btn btn-primary btn-lg"
+                    className="btn btn-primary"
                   >
                     Next →
                   </button>

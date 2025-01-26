@@ -13,11 +13,11 @@ const TIMEOUT_MS = 600000; // 10 minutes
 
 // Art style and quality modifiers to enhance image generation
 const STYLE_MODIFIERS = {
-  artStyle: 'children\'s book illustration style, digital art, vibrant colors, line art, cel shaded',
-  quality: 'highly detailed, vivid colors, strong lines,',
-  lighting: 'soft ambient lighting, gentle shadows',
+  artStyle: 'children\'s book illustration style, digital art, vibrant colors, line art, cel shaded, 1990s Disney style,',
+  quality: '',
+  lighting: '',
   composition: 'rule of thirds, dynamic composition, balanced framing',
-  atmosphere: 'whimsical, magical, enchanting',
+  atmosphere: 'whimsical, magical, enchanting, cartoonish',
   rendering: ''
 } as const;
 
@@ -56,16 +56,18 @@ export const storyViewModel = {
         "A three year old toddler girl with brown hair, blue eyes, wearing a pink t-shirt, blue jeans, and pink converse shoes" // Default Maddie description
     });
 
-    // Set the sidekick description
-    this.currentCharacters.set(request.sidekick, {
-      name: request.sidekick,
-      description: sidekickPreset?.visualDescription || 
-        "a grey miniature schnauzer puppy with a blue collar" // Default Tom description
-    });
+    // Only set the sidekick description if it's not "None"
+    if (request.sidekick !== 'None' && sidekickPreset) {
+      this.currentCharacters.set(request.sidekick, {
+        name: request.sidekick,
+        description: sidekickPreset.visualDescription || 
+          "a grey miniature schnauzer puppy with a blue collar" // Default Tom description
+      });
+    }
 
     console.log('Initialized character descriptions:', {
       mainCharacter: this.currentCharacters.get(request.mainCharacter),
-      sidekick: this.currentCharacters.get(request.sidekick)
+      sidekick: request.sidekick !== 'None' ? this.currentCharacters.get(request.sidekick) : 'None'
     });
   },
 
@@ -310,7 +312,9 @@ export const storyViewModel = {
 
       console.log('\n=== Story Creation Complete ===');
       const story = {
-        title: `The Adventures of ${request.mainCharacter} and ${request.sidekick}`,
+        title: request.sidekick !== 'None' 
+          ? `The Adventures of ${request.mainCharacter} and ${request.sidekick}`
+          : `The Adventures of ${request.mainCharacter}`,
         pages
       };
       console.log('Final story structure:', {

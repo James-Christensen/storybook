@@ -2,6 +2,7 @@ export interface StoryRequest {
   mainCharacter: string;
   sidekick: string;
   setting: string;
+  pageCount: number;
 }
 
 export interface StoryPage {

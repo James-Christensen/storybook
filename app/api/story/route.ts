@@ -4,11 +4,13 @@ const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
 const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
 
 const STORY_PROMPT = `
-Create a magical children's story about {mainCharacter} and their friend {sidekick} having an adventure in {setting}.
+Create a magical children's story about {mainCharacter}${(request: StoryRequest) => request.sidekick !== 'None' ? ` and their friend {sidekick}` : ''} having an adventure in {setting}.
 The story should be enchanting, fun, and suitable for young children aged 2-6.
 
-Return the story as a JSON array of exactly 6 pages. Each page should contain:
-- pageNumber: The page number (1-6)
+IMPORTANT: The story MUST be exactly {pageCount} pages long, no more and no less.
+
+Return the story as a JSON array of exactly {pageCount} pages. Each page should contain:
+- pageNumber: The page number (1-{pageCount})
 - text: 2-3 sentences of story text that are easy to read aloud
 - imageDescription: A detailed description for generating an illustration of that page's scene. Focus on describing the visual elements, characters' appearances, emotions, and the setting.
 
@@ -24,22 +26,52 @@ The response must be valid JSON in this format:
   ]
 }
 
-Follow this 6-page story structure:
-1. Opening Scene: Introduce {mainCharacter} and {sidekick} in their everyday setting, showing their special friendship and personalities
-2. Magical Discovery: They discover something extraordinary in {setting} that sparks their curiosity and sets up the adventure
-3. First Challenge: They encounter an interesting problem or puzzle that needs solving together
-4. Working Together: {mainCharacter} and {sidekick} combine their unique abilities to tackle the challenge
-5. Moment of Success: Their teamwork and friendship leads to a magical or surprising result
-6. Happy Ending: A heartwarming conclusion where they celebrate their adventure and maybe keep a special memory or magical keepsake
+Follow this story structure across exactly {pageCount} pages:
+${(request: StoryRequest) => {
+  const pages = [];
+  const totalPages = request.pageCount;
+  
+  // Opening (always page 1)
+  pages.push(`1. Opening Scene: Introduce {mainCharacter}${request.sidekick !== 'None' ? ` and {sidekick}` : ''} in their everyday setting, showing ${request.sidekick !== 'None' ? 'their special friendship' : 'their personality'}`);
+  
+  if (totalPages === 3) {
+    // For 3-page stories
+    pages.push(`2. Adventure: ${request.sidekick !== 'None' ? 'They discover' : `${request.mainCharacter} discovers`} something magical in {setting} and face an exciting challenge`);
+    pages.push(`3. Happy Ending: ${request.sidekick !== 'None' ? 'They celebrate' : `${request.mainCharacter} celebrates`} their success and keep a special memory of the adventure`);
+  } else {
+    // For longer stories
+    // Magical Discovery (always page 2)
+    pages.push(`2. Magical Discovery: ${request.sidekick !== 'None' ? 'They discover' : `${request.mainCharacter} discovers`} something extraordinary in {setting} that sparks curiosity and sets up the adventure`);
+    
+    // Middle pages (challenges and development)
+    const middlePages = totalPages - 3; // Subtract opening, discovery, and ending
+    for (let i = 0; i < middlePages; i++) {
+      const pageNum = i + 3;
+      if (i === 0) {
+        pages.push(`${pageNum}. First Challenge: ${request.sidekick !== 'None' ? 'They face' : `${request.mainCharacter} faces`} their first exciting challenge`);
+      } else if (i === Math.floor(middlePages / 2)) {
+        pages.push(`${pageNum}. Main Challenge: ${request.sidekick !== 'None' ? 'They work together using their unique abilities' : `${request.mainCharacter} uses creativity and courage`} to tackle the biggest challenge`);
+      } else {
+        pages.push(`${pageNum}. Adventure Progress: ${request.sidekick !== 'None' ? 'Their teamwork' : `${request.mainCharacter}'s determination`} leads to exciting developments`);
+      }
+    }
+    
+    // Happy Ending (always last page)
+    pages.push(`${totalPages}. Happy Ending: A heartwarming conclusion where ${request.sidekick !== 'None' ? 'they celebrate' : `${request.mainCharacter} celebrates`} the adventure with a special memory or magical keepsake`);
+  }
+  
+  return pages.join('\n');
+}}
 
 Important guidelines:
 - Keep the tone warm and friendly throughout
 - Include moments of humor and wonder
 - Show the characters expressing different emotions
-- Emphasize friendship, kindness, and working together
+- ${(request: StoryRequest) => request.sidekick !== 'None' ? 'Emphasize friendship, kindness, and working together' : 'Emphasize creativity, bravery, and self-discovery'}
 - Make sure each page's text flows naturally when read aloud
 - Include vivid sensory details in both text and image descriptions
 - Make the image descriptions detailed enough to generate consistent character appearances across all illustrations
+- IMPORTANT: The story MUST contain exactly {pageCount} pages, no more and no less
 
 Make the story engaging and the image descriptions vivid and detailed, maintaining consistent character appearances throughout all scenes.
 `;
@@ -49,11 +81,18 @@ export async function POST(request: Request) {
     const storyRequest: StoryRequest = await request.json();
     console.log('Generating story for:', storyRequest);
     
-    const prompt = STORY_PROMPT
+    // Create a function to process template strings with the request context
+    const processTemplate = (template: string) => {
+      return template.replace(/\$\{(request: StoryRequest) => ([^}]+)\}/g, (_, params, code) => {
+        return eval(`((request: any) => ${code})(storyRequest)`);
+      })
+      .replace(/\{pageCount\}/g, storyRequest.pageCount.toString())
       .replace('{mainCharacter}', storyRequest.mainCharacter)
       .replace('{sidekick}', storyRequest.sidekick)
       .replace('{setting}', storyRequest.setting);
+    };
 
+    const prompt = processTemplate(STORY_PROMPT);
     console.log('Sending prompt to Ollama:', prompt);
 
     const response = await fetch(OLLAMA_URL, {
