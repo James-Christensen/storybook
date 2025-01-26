@@ -233,7 +233,12 @@ export const storyViewModel = {
     }
   },
 
-  async createStory(request: StoryRequest): Promise<Story> {
+  async createStory(
+    request: StoryRequest, 
+    options?: { 
+      onGenerationProgress?: (status: 'writing' | 'drawing', page?: number, total?: number) => void 
+    }
+  ): Promise<Story> {
     try {
       console.log('\n=== Starting Story Generation ===');
       console.log('Story request:', request);
@@ -241,6 +246,8 @@ export const storyViewModel = {
       // Initialize character descriptions for this story
       this.initializeCharacterDescriptions(request);
       
+      options?.onGenerationProgress?.('writing');
+
       // Generate story text using Ollama with timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -278,6 +285,7 @@ export const storyViewModel = {
       const pages: StoryPage[] = [];
       for (const page of data.pages) {
         try {
+          options?.onGenerationProgress?.('drawing', page.pageNumber, data.pages.length);
           console.log(`\nProcessing page ${page.pageNumber}...`);
           const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber);
           pages.push({
