@@ -15,7 +15,7 @@ type GenerationStatus = {
 
 export default function Home() {
   const [story, setStory] = useState<Story>();
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>();
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>({
     status: 'writing'
@@ -23,34 +23,46 @@ export default function Home() {
 
   const handleSubmit = async (request: StoryRequest) => {
     try {
-      setIsLoading(true);
+      setIsGenerating(true);
       setError(undefined);
       setGenerationStatus({ status: 'writing' });
       
       console.log('Submitting request:', request);
-      const generatedStory = await storyViewModel.createStory(request, {
-        onGenerationProgress: (status: 'writing' | 'drawing', page?: number, total?: number) => {
+      
+      // First generate the story text
+      const initialStory = await storyViewModel.createStoryText(request);
+      setStory(initialStory);
+      setIsGenerating(false);
+      
+      // Then generate images in the background
+      storyViewModel.generateImagesForStory(initialStory, {
+        onProgress: (page: number, total: number) => {
           setGenerationStatus({
-            status,
+            status: 'drawing',
             currentPage: page,
             totalPages: total
+          });
+        },
+        onImageGenerated: (pageIndex: number, imageUrl: string) => {
+          setStory(prevStory => {
+            if (!prevStory) return prevStory;
+            const updatedPages = [...prevStory.pages];
+            updatedPages[pageIndex] = { ...updatedPages[pageIndex], imageUrl };
+            return { ...prevStory, pages: updatedPages };
           });
         }
       });
       
-      console.log('Generated story:', generatedStory);
-      setStory(generatedStory);
     } catch (error) {
       console.error('Error generating story:', error);
       setError(error instanceof Error ? error.message : 'Failed to create your story. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
 
   return (
     <main className="container mx-auto py-8">
-      {isLoading && (
+      {isGenerating && (
         <LoadingOverlay 
           status={generationStatus.status}
           currentPage={generationStatus.currentPage}
@@ -68,10 +80,17 @@ export default function Home() {
               <span>{error}</span>
             </div>
           )}
-          <StoryForm onSubmit={handleSubmit} isLoading={isLoading} />
+          <StoryForm onSubmit={handleSubmit} isLoading={isGenerating} />
         </>
       ) : (
-        <StoryBook story={story} onStartOver={() => setStory(undefined)} />
+        <StoryBook 
+          story={story} 
+          onStartOver={() => {
+            setStory(undefined);
+            setGenerationStatus({ status: 'writing' });
+          }}
+          generationStatus={generationStatus}
+        />
       )}
     </main>
   );

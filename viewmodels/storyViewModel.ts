@@ -235,6 +235,51 @@ export const storyViewModel = {
     }
   },
 
+  async createStoryText(request: StoryRequest): Promise<Story> {
+    this.initializeCharacterDescriptions(request);
+    
+    const response = await fetch(API_ENDPOINTS.STORY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request)
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to generate story text');
+    }
+
+    const storyData = await response.json();
+    return {
+      ...storyData,
+      pages: storyData.pages.map((page: StoryPage) => ({
+        ...page,
+        imageUrl: undefined // Images will be generated separately
+      }))
+    };
+  },
+
+  async generateImagesForStory(
+    story: Story,
+    options?: {
+      onProgress?: (currentPage: number, totalPages: number) => void;
+      onImageGenerated?: (pageIndex: number, imageUrl: string) => void;
+    }
+  ): Promise<void> {
+    const totalPages = story.pages.length;
+    
+    // Generate images sequentially, starting with the first page
+    for (let index = 0; index < totalPages; index++) {
+      try {
+        options?.onProgress?.(index + 1, totalPages);
+        const page = story.pages[index];
+        const imageUrl = await this.generateImage(page.imageDescription, index + 1);
+        options?.onImageGenerated?.(index, imageUrl);
+      } catch (error) {
+        console.error(`Failed to generate image for page ${index + 1}:`, error);
+      }
+    }
+  },
+
   async createStory(
     request: StoryRequest, 
     options?: { 

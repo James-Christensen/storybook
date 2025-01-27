@@ -182,3 +182,36 @@ async function createStory(request: StoryRequest): Promise<Story> {
 ### Milestone 4: Testing & Polish
 - Add loading states, error handling, and minimal styling
 - Confirm the final user experience is smooth and meets acceptance criteria
+
+
+To do:
+Image Lazy Loading
+Can be implemented using Next.js's built-in Image component or react-lazy-load-image-component
+Minimal code changes required
+Immediate performance benefits
+Loading States
+Already have some loading states, just need to extend to other async operations
+Mostly UI work with existing LoadingOverlay component
+Straightforward state management
+Swipe Gestures
+Can be implemented using react-swipeable or similar library
+Simple integration with existing page navigation
+Minimal state management needed
+Medium Complexity (4-8 hours):
+Page Turn Animations
+Can be implemented using CSS transitions/animations
+Requires careful timing and state management
+Need to handle both directions and edge cases
+Progress Indicator
+Requires modifications to the story generation process
+Need to track and report progress from the API
+UI implementation is straightforward
+6. Local Story Persistence
+Using localStorage or IndexedDB
+Need to implement save/load functionality
+Basic library view implementation
+No backend required
+Error Boundaries
+React feature but requires careful implementation
+Need to identify key areas for boundary placement
+Requires good error handling and recovery strategies

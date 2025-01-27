@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Story } from '../models/story';
 import KeyboardHints from './KeyboardHints';
 
 interface StoryBookProps {
   story: Story;
   onStartOver: () => void;
+  generationStatus: {
+    status: 'writing' | 'drawing';
+    currentPage?: number;
+    totalPages?: number;
+  };
 }
 
-export default function StoryBook({ story, onStartOver }: StoryBookProps) {
+export default function StoryBook({ story, onStartOver, generationStatus }: StoryBookProps) {
   const [showCover, setShowCover] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const totalPages = story.pages.length;
@@ -58,6 +64,10 @@ export default function StoryBook({ story, onStartOver }: StoryBookProps) {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [currentPage, totalPages, isLastPage, showCover]);
 
+  const isCurrentPageGenerating = 
+    generationStatus.status === 'drawing' && 
+    generationStatus.currentPage === currentPage;
+
   if (showCover) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center px-4">
@@ -84,30 +94,54 @@ export default function StoryBook({ story, onStartOver }: StoryBookProps) {
         <div className="card-body p-4 md:p-8">
           {/* Main Content Area */}
           <div className="flex flex-col h-full">
-            {/* Image Container - Takes up top 2/3 on mobile and tablet */}
+            {/* Image Container */}
             <div className="relative w-full h-0 pb-[66.67%] mb-4 rounded-xl overflow-hidden bg-base-200">
               {currentPageData.imageUrl ? (
-                <img 
+                <Image 
                   src={currentPageData.imageUrl} 
                   alt={`Page ${currentPage} illustration`}
-                  className="absolute inset-0 w-full h-full object-contain"
+                  fill
+                  className="object-contain"
+                  priority={currentPage === 1}
+                  quality={90}
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDABQODxIPDRQSEBIXFRQdHx4eHRoaHSQrJyEwPENDPzE2O0FBNjpLPS1yWkNKTm1dZmNpbHaBf4GGgW96gXN9gW3/2wBDARUXFx4aHR4eHW1tQy1DbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW1tbW3/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAb/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                  onLoadingComplete={(img) => {
+                    img.classList.remove('blur-sm');
+                  }}
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="loading loading-spinner loading-lg text-primary"></span>
-                  <span className="ml-4 opacity-50">Loading illustration...</span>
+                  <div className="text-center">
+                    <span className="loading loading-spinner loading-lg text-primary"></span>
+                    <p className="mt-4 text-base-content/60">
+                      {isCurrentPageGenerating ? (
+                        <span>Creating illustration for page {currentPage}...</span>
+                      ) : (
+                        <span>Loading illustration...</span>
+                      )}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Text Container - Takes up bottom 1/3 on mobile and tablet */}
+            {/* Text Container */}
             <div className="flex-1 flex flex-col justify-between min-h-[33.33%] bg-base-200/20 rounded-xl p-6">
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h2 className="text-2xl font-bold">Page {currentPage}</h2>
-                  <span className="text-sm font-medium opacity-60">
-                    {currentPage} of {totalPages}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium opacity-60">
+                      {currentPage} of {totalPages}
+                    </span>
+                    {generationStatus.status === 'drawing' && (
+                      <span className="badge badge-primary badge-sm">
+                        Generating illustrations...
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <p className="text-lg md:text-xl leading-relaxed">{currentPageData.text}</p>
               </div>
