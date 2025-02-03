@@ -76,6 +76,23 @@ Important guidelines:
 Make the story engaging and the image descriptions vivid and detailed, maintaining consistent character appearances throughout all scenes.
 `;
 
+// Add asset-specific prompt additions
+const ASSET_MODE_PROMPT = `
+IMPORTANT ADDITIONAL GUIDELINES FOR ASSET-BASED MODE:
+
+For each page's imageDescription, focus on these specific elements that will determine which pre-made assets to use:
+1. Character's emotion and action (choose from: neutral/standing, happy/excited, thinking/curious, celebrating/jumping, running/exploring)
+2. Setting type (choose from: bedroom/home, park/playground, forest/nature, beach/ocean)
+
+The descriptions should clearly indicate which pose and background would best match the scene.
+Examples:
+- "Maddie stands thoughtfully in her cozy bedroom, hand on chin as she wonders what adventure awaits."
+- "Maddie runs excitedly through the magical forest, exploring every path with boundless energy."
+
+Keep the actions and settings aligned with our available assets while maintaining an engaging story.
+Remember to vary the poses throughout the story to make it dynamic and engaging.
+`;
+
 export async function POST(request: Request) {
   try {
     const storyRequest: StoryRequest = await request.json();
@@ -92,7 +109,12 @@ export async function POST(request: Request) {
       .replace('{setting}', storyRequest.setting);
     };
 
-    const prompt = processTemplate(STORY_PROMPT);
+    // Add asset-mode specific instructions if needed
+    const finalPrompt = storyRequest.generationMode === 'asset' 
+      ? STORY_PROMPT + ASSET_MODE_PROMPT 
+      : STORY_PROMPT;
+
+    const prompt = processTemplate(finalPrompt);
     console.log('Sending prompt to Ollama:', prompt);
 
     const response = await fetch(OLLAMA_URL, {
@@ -126,7 +148,10 @@ export async function POST(request: Request) {
       }
 
       // Return the parsed pages directly
-      return Response.json({ pages: storyData.pages });
+      return Response.json({ 
+        pages: storyData.pages,
+        generationMode: storyRequest.generationMode // Include the mode in response
+      });
 
     } catch (parseError) {
       console.error('Failed to parse story JSON:', parseError);

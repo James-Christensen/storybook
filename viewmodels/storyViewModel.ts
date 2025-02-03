@@ -1,8 +1,9 @@
-import { Story, StoryRequest, StoryPage } from '../models/story';
+import { Story, StoryRequest, StoryPage, GenerationMode } from '../models/story';
 
 const API_ENDPOINTS = {
   STORY: '/api/story',
-  IMAGE: '/api/image'
+  IMAGE: '/api/image',
+  COMPOSE_IMAGE: '/api/compose-image'
 } as const;
 
 // TODO: Adjust timeout for production
@@ -143,58 +144,56 @@ export const storyViewModel = {
     return enhancedPrompt;
   },
 
-  async generateImage(imageDescription: string, pageNumber: number): Promise<string> {
-    console.log(`\n=== Generating image for page ${pageNumber} ===`);
+  async generateImage(imageDescription: string, pageNumber: number, mode: GenerationMode): Promise<string> {
+    console.log(`\n=== Generating image for page ${pageNumber} using ${mode} mode ===`);
     
-    // Transform the basic image description into an enhanced prompt
-    const enhancedPrompt = this.enhancePrompt(imageDescription);
-    console.log('Using enhanced prompt:', enhancedPrompt);
-    
-    // Check if Maddie is the main character and add her Lora if she is
-    const isMaddie = Array.from(this.currentCharacters.values()).some(
-      char => char.name === 'Maddie'
-    );
+    if (mode === 'asset') {
+      // Use asset-based composition
+      const response = await fetch(API_ENDPOINTS.COMPOSE_IMAGE, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ description: imageDescription })
+      });
 
-    const loras = isMaddie ? [
-      {
-        weight: 0.7,
-        file: "maddie_lora_lora_f16.ckpt"
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`Image composition failed: ${errorText}`);
       }
-    ] : [];
 
-    // Log Lora usage
-    if (loras.length > 0) {
-      console.log('Using Loras:', loras.map(lora => ({
-        file: lora.file,
-        weight: lora.weight
-      })));
+      const data = await response.json();
+      return data.imageData;
     } else {
-      console.log('No Loras being used for this image');
-    }
+      // Use AI generation (existing code)
+      const enhancedPrompt = this.enhancePrompt(imageDescription);
+      console.log('Using enhanced prompt:', enhancedPrompt);
+      
+      const isMaddie = Array.from(this.currentCharacters.values()).some(
+        char => char.name === 'Maddie'
+      );
 
-    const requestBody = {
-      prompt: enhancedPrompt,
-      model: 'flux_1_schnell_q5p.ckpt',
-      loras,
-      seed: -1,
-      guidance_scale: 1.0,
-      steps: 4,
-      width: 768,
-      height: 768,
-      sampler: 'Euler A Trailing',
-      batch_count: 1
-    };
+      const loras = isMaddie ? [
+        {
+          weight: 0.7,
+          file: "maddie_lora_lora_f16.ckpt"
+        }
+      ] : [];
 
-    console.log('Preparing request with config:', {
-      model: requestBody.model,
-      sampler: requestBody.sampler,
-      steps: requestBody.steps,
-      size: `${requestBody.width}x${requestBody.height}`,
-      loras: requestBody.loras
-    });
+      const requestBody = {
+        prompt: enhancedPrompt,
+        model: 'flux_1_schnell_q5p.ckpt',
+        loras,
+        seed: -1,
+        guidance_scale: 1.0,
+        steps: 4,
+        width: 768,
+        height: 768,
+        sampler: 'Euler A Trailing',
+        batch_count: 1
+      };
 
-    try {
-      console.log('Sending request to image generation API...');
       const response = await fetch(API_ENDPOINTS.IMAGE, {
         method: 'POST',
         headers: {
@@ -209,29 +208,13 @@ export const storyViewModel = {
         throw new Error(`Image generation failed: ${errorText}`);
       }
 
-      console.log('Successfully received API response, parsing data...');
       const data = await response.json();
       
-      console.log(`Received response for page ${pageNumber}`);
-      
       if (!data.images || !data.images[0]) {
-        console.error('Invalid response structure:', data);
         throw new Error('No image was generated in the response');
       }
 
-      const base64Length = data.images[0].length;
-      console.log(`Generated image for page ${pageNumber} (base64 length: ${base64Length})`);
-      
-      if (base64Length < 1000) {
-        console.warn('Warning: Unusually small base64 data received');
-      }
-
-      // Convert base64 to data URL
       return `data:image/png;base64,${data.images[0]}`;
-    } catch (error) {
-      console.error(`\n=== Image Generation Failed for Page ${pageNumber} ===`);
-      console.error('Error details:', error);
-      throw error;
     }
   },
 
@@ -248,13 +231,11 @@ export const storyViewModel = {
       throw new Error('Failed to generate story text');
     }
 
-    const storyData = await response.json();
+    const data = await response.json();
     return {
-      ...storyData,
-      pages: storyData.pages.map((page: StoryPage) => ({
-        ...page,
-        imageUrl: undefined // Images will be generated separately
-      }))
+      title: `${request.mainCharacter}'s Adventure in ${request.setting}`,
+      pages: data.pages,
+      generationMode: request.generationMode
     };
   },
 
@@ -267,15 +248,20 @@ export const storyViewModel = {
   ): Promise<void> {
     const totalPages = story.pages.length;
     
-    // Generate images sequentially, starting with the first page
-    for (let index = 0; index < totalPages; index++) {
+    for (let i = 0; i < totalPages; i++) {
+      options?.onProgress?.(i + 1, totalPages);
+      
       try {
-        options?.onProgress?.(index + 1, totalPages);
-        const page = story.pages[index];
-        const imageUrl = await this.generateImage(page.imageDescription, index + 1);
-        options?.onImageGenerated?.(index, imageUrl);
+        const imageUrl = await this.generateImage(
+          story.pages[i].imageDescription, 
+          i + 1,
+          story.generationMode || 'ai' // Default to 'ai' for backward compatibility
+        );
+        
+        options?.onImageGenerated?.(i, imageUrl);
       } catch (error) {
-        console.error(`Failed to generate image for page ${index + 1}:`, error);
+        console.error(`Failed to generate image for page ${i + 1}:`, error);
+        // Continue with next image even if one fails
       }
     }
   },
@@ -334,7 +320,7 @@ export const storyViewModel = {
         try {
           options?.onGenerationProgress?.('drawing', page.pageNumber, data.pages.length);
           console.log(`\nProcessing page ${page.pageNumber}...`);
-          const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber);
+          const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber, page.generationMode || 'ai');
           pages.push({
             ...page,
             imageUrl

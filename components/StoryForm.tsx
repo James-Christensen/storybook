@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StoryRequest } from '../models/story';
+import { StoryRequest, GenerationMode } from '../models/story';
 
 interface CharacterPreset {
   name: string;
@@ -156,7 +156,8 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     mainCharacter: '',
     sidekick: '',
     setting: '',
-    pageCount: 6 // Default to 6 pages
+    pageCount: 6, // Default to 6 pages
+    generationMode: 'ai' // Default to AI mode
   });
   const [customInputs, setCustomInputs] = useState({
     character: false,
@@ -218,7 +219,10 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             key={count}
             type="button"
             tabIndex={-1}
-            onClick={() => setFormData(prev => ({ ...prev, pageCount: count }))}
+            onClick={() => {
+              setFormData(prev => ({ ...prev, pageCount: count }));
+              setStep(4); // Advance to mode selection step
+            }}
             className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
               formData.pageCount === count ? 'border-primary border-2' : 'border-base-200'
             }`}
@@ -234,6 +238,47 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             </div>
           </button>
         ))}
+      </div>
+    </div>
+  );
+
+  const renderModeSelector = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <h2 className="text-3xl font-bold text-secondary">Choose generation mode</h2>
+        <div className="badge badge-md badge-primary">Final Step</div>
+      </div>
+      <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, generationMode: 'ai' }))}
+          className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+            formData.generationMode === 'ai' ? 'border-primary border-2' : 'border-base-200'
+          }`}
+        >
+          <div className="card-body flex flex-col items-center justify-center text-center p-6">
+            <span className="text-4xl mb-2">🎨</span>
+            <h3 className="text-xl font-bold mb-2">AI Generation</h3>
+            <p className="text-sm opacity-70">
+              Unique AI-generated illustrations for each page
+            </p>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => setFormData(prev => ({ ...prev, generationMode: 'asset' }))}
+          className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+            formData.generationMode === 'asset' ? 'border-primary border-2' : 'border-base-200'
+          }`}
+        >
+          <div className="card-body flex flex-col items-center justify-center text-center p-6">
+            <span className="text-4xl mb-2">⚡</span>
+            <h3 className="text-xl font-bold mb-2">Asset-Based</h3>
+            <p className="text-sm opacity-70">
+              Instant illustrations using pre-made assets
+            </p>
+          </div>
+        </button>
       </div>
     </div>
   );
@@ -386,6 +431,12 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
 
       case 3:
         return renderPageCountSelector();
+
+      case 4:
+        return renderModeSelector();
+
+      default:
+        return null;
     }
   };
 
@@ -410,7 +461,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   </button>
                 )}
                 <div className="flex-1" />
-                {step === 3 && formData.pageCount && (
+                {step === 4 && formData.pageCount && (
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -426,6 +477,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                 <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
                 <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
                 <li className={`step ${step >= 3 ? 'step-primary' : ''}`}>Length</li>
+                <li className={`step ${step >= 4 ? 'step-primary' : ''}`}>Mode</li>
               </ul>
             </div>
           </div>
