@@ -8,7 +8,56 @@ interface CharacterPreset {
   emoji: string;
 }
 
-export const CHARACTER_PRESETS: CharacterPreset[] = [
+// Asset-based mode presets (limited to available assets)
+export const ASSET_MODE_PRESETS = {
+  characters: [
+    { 
+      name: 'Maddie', 
+      description: 'A brave and cheerful toddler adventurer',
+      visualDescription: 'A three year old toddler girl with brown hair, blue eyes, wearing a pink t-shirt, blue jeans, and pink converse shoes',
+      emoji: '👧'
+    }
+  ],
+  sidekicks: [
+    { 
+      name: 'Tom', 
+      description: 'A playful gray mini schnauzer with a big heart',
+      visualDescription: 'a grey miniature schnauzer puppy with a blue collar',
+      emoji: '🐕'
+    },
+    {
+      name: 'None',
+      description: 'Create a story without a sidekick',
+      visualDescription: '',
+      emoji: '🌟'
+    }
+  ],
+  settings: [
+    { 
+      name: 'Cozy Bedroom', 
+      description: 'A warm and inviting bedroom filled with toys and books',
+      emoji: '🛏️'
+    },
+    { 
+      name: 'Sunny Park', 
+      description: 'A cheerful park with a playground and tall trees',
+      emoji: '🌳'
+    },
+    { 
+      name: 'Magic Forest', 
+      description: 'A mysterious forest with towering trees and magical paths',
+      emoji: '🌲'
+    },
+    { 
+      name: 'Sandy Beach', 
+      description: 'A beautiful beach with sparkling waves and soft sand',
+      emoji: '🏖️'
+    }
+  ]
+};
+
+// Keep existing presets for AI mode
+export const CHARACTER_PRESETS = [
   { 
     name: 'Maddie', 
     description: 'A brave and cheerful toddler adventurer',
@@ -47,7 +96,7 @@ export const CHARACTER_PRESETS: CharacterPreset[] = [
   },
 ];
 
-export const PET_PRESETS: CharacterPreset[] = [
+export const PET_PRESETS = [
   { 
     name: 'Tom', 
     description: 'A playful gray mini schnauzer with a big heart',
@@ -92,7 +141,7 @@ export const PET_PRESETS: CharacterPreset[] = [
   },
 ];
 
-const SETTING_PRESETS = [
+export const SETTING_PRESETS = [
   { 
     name: 'Magic Forest', 
     description: 'A forest with talking trees and glowing flowers',
@@ -156,102 +205,36 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     mainCharacter: '',
     sidekick: '',
     setting: '',
-    pageCount: 6, // Default to 6 pages
-    generationMode: 'ai' // Default to AI mode
+    pageCount: 6,
+    generationMode: 'ai'
   });
+
   const [customInputs, setCustomInputs] = useState({
     character: false,
     pet: false,
     setting: false
   });
 
-  const handlePresetSelect = (type: 'character' | 'pet' | 'setting', value: string) => {
-    if (value === 'Custom') {
-      setCustomInputs(prev => ({ ...prev, [type]: true }));
-      return;
-    }
-
-    setCustomInputs(prev => ({ ...prev, [type]: false }));
-    switch (type) {
-      case 'character':
-        setFormData(prev => ({ ...prev, mainCharacter: value }));
-        if (!customInputs.character) setStep(1);
-        break;
-      case 'pet':
-        setFormData(prev => ({ ...prev, sidekick: value }));
-        if (!customInputs.pet) setStep(2);
-        break;
-      case 'setting':
-        setFormData(prev => ({ ...prev, setting: value }));
-        if (!customInputs.setting) setStep(3);
-        break;
-    }
-  };
-
-  const handleCustomInput = (type: 'character' | 'pet' | 'setting', value: string) => {
-    switch (type) {
-      case 'character':
-        setFormData(prev => ({ ...prev, mainCharacter: value }));
-        break;
-      case 'pet':
-        setFormData(prev => ({ ...prev, sidekick: value }));
-        break;
-      case 'setting':
-        setFormData(prev => ({ ...prev, setting: value }));
-        break;
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const renderPageCountSelector = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        <h2 className="text-3xl font-bold text-secondary">Choose story length</h2>
-        <div className="badge badge-md badge-primary">Step 4</div>
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
-        {[3, 4, 5, 6, 7, 8, 9, 10].map(count => (
-          <button
-            key={count}
-            type="button"
-            tabIndex={-1}
-            onClick={() => {
-              setFormData(prev => ({ ...prev, pageCount: count }));
-              setStep(4); // Advance to mode selection step
-            }}
-            className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
-              formData.pageCount === count ? 'border-primary border-2' : 'border-base-200'
-            }`}
-          >
-            <div className="card-body flex flex-col items-center justify-center text-center p-6">
-              <span className="text-4xl font-bold mb-2">{count}</span>
-              <p className="text-sm opacity-70">
-                {count <= 4 ? 'Quick Story' :
-                 count <= 6 ? 'Regular Story' :
-                 count <= 8 ? 'Longer Story' :
-                 'Epic Adventure'}
-              </p>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-
   const renderModeSelector = () => (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-center gap-2 mb-6">
         <h2 className="text-3xl font-bold text-secondary">Choose generation mode</h2>
-        <div className="badge badge-md badge-primary">Final Step</div>
+        <div className="badge badge-md badge-primary">Step 1</div>
       </div>
       <div className="grid grid-cols-2 gap-6 max-w-2xl mx-auto">
         <button
           type="button"
-          onClick={() => setFormData(prev => ({ ...prev, generationMode: 'ai' }))}
+          onClick={() => {
+            setFormData(prev => ({ 
+              ...prev, 
+              generationMode: 'ai',
+              // Reset other fields when switching to AI mode
+              mainCharacter: '',
+              sidekick: '',
+              setting: ''
+            }));
+            setStep(1);
+          }}
           className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
             formData.generationMode === 'ai' ? 'border-primary border-2' : 'border-base-200'
           }`}
@@ -262,11 +245,24 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             <p className="text-sm opacity-70">
               Unique AI-generated illustrations for each page
             </p>
+            <div className="mt-4 text-xs opacity-50">
+              Choose from all available characters and settings
+            </div>
           </div>
         </button>
         <button
           type="button"
-          onClick={() => setFormData(prev => ({ ...prev, generationMode: 'asset' }))}
+          onClick={() => {
+            setFormData(prev => ({ 
+              ...prev, 
+              generationMode: 'asset',
+              // Set Maddie as default character for asset mode
+              mainCharacter: 'Maddie',
+              sidekick: 'None',
+              setting: ''
+            }));
+            setStep(1);
+          }}
           className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
             formData.generationMode === 'asset' ? 'border-primary border-2' : 'border-base-200'
           }`}
@@ -277,8 +273,155 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             <p className="text-sm opacity-70">
               Instant illustrations using pre-made assets
             </p>
+            <div className="mt-4 text-xs opacity-50">
+              Create stories featuring Maddie's adventures
+            </div>
           </div>
         </button>
+      </div>
+    </div>
+  );
+
+  const renderCharacterSelector = () => {
+    const presets = formData.generationMode === 'asset' 
+      ? ASSET_MODE_PRESETS.characters
+      : CHARACTER_PRESETS;
+
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <h2 className="text-3xl font-bold text-secondary">
+            {formData.generationMode === 'asset' ? 'Meet Your Hero' : 'Choose your hero'}
+          </h2>
+          <div className="badge badge-md badge-primary">Step 2</div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+          {presets.map(preset => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => {
+                setFormData(prev => ({ ...prev, mainCharacter: preset.name }));
+                setStep(2);
+              }}
+              className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
+                formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
+              }`}
+            >
+              <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                <span className="text-5xl mb-2">{preset.emoji}</span>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold">{preset.name}</h3>
+                  <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSidekickSelector = () => {
+    const presets = formData.generationMode === 'asset'
+      ? ASSET_MODE_PRESETS.sidekicks
+      : PET_PRESETS;
+
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <h2 className="text-3xl font-bold text-secondary">Choose a sidekick</h2>
+          <div className="badge badge-md badge-primary">Step 3</div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+          {presets.map(preset => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => {
+                setFormData(prev => ({ ...prev, sidekick: preset.name }));
+                setStep(3);
+              }}
+              className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
+                formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
+              }`}
+            >
+              <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                <span className="text-5xl mb-2">{preset.emoji}</span>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold">{preset.name}</h3>
+                  <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderSettingSelector = () => {
+    const presets = formData.generationMode === 'asset'
+      ? ASSET_MODE_PRESETS.settings
+      : SETTING_PRESETS;
+
+    return (
+      <div className="flex flex-col h-full">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <h2 className="text-3xl font-bold text-secondary">Choose your adventure place</h2>
+          <div className="badge badge-md badge-primary">Step 4</div>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+          {presets.map(preset => (
+            <button
+              key={preset.name}
+              type="button"
+              onClick={() => {
+                setFormData(prev => ({ ...prev, setting: preset.name }));
+                setStep(4);
+              }}
+              className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
+                formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
+              }`}
+            >
+              <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+                <span className="text-5xl mb-2">{preset.emoji}</span>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold">{preset.name}</h3>
+                  <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderPageCountSelector = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <h2 className="text-3xl font-bold text-secondary">Choose story length</h2>
+        <div className="badge badge-md badge-primary">Final Step</div>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-3xl mx-auto">
+        {[3, 4, 5, 6].map(count => (
+          <button
+            key={count}
+            type="button"
+            onClick={() => setFormData(prev => ({ ...prev, pageCount: count }))}
+            className={`card bg-base-100 hover:bg-base-200 transition-all hover:scale-105 border select-none touch-manipulation ${
+              formData.pageCount === count ? 'border-primary border-2' : 'border-base-200'
+            }`}
+          >
+            <div className="card-body flex flex-col items-center justify-center text-center p-6">
+              <span className="text-4xl font-bold mb-2">{count}</span>
+              <p className="text-sm opacity-70">
+                {count <= 4 ? 'Quick Story' : 'Regular Story'}
+              </p>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -286,158 +429,23 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
   const renderStep = () => {
     switch (step) {
       case 0:
-        return (
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <h2 className="text-3xl font-bold text-secondary">Choose your hero</h2>
-              <div className="badge badge-md badge-primary">Step 1</div>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
-              {CHARACTER_PRESETS.map(preset => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => handlePresetSelect('character', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
-                    formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
-                  }`}
-                >
-                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
-                    <span className="text-5xl mb-2">{preset.emoji}</span>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">{preset.name}</h3>
-                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            {customInputs.character && (
-              <div className="form-control mt-6">
-                <label className="label justify-center">
-                  <span className="label-text text-lg">What's your hero's name?</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.mainCharacter}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, mainCharacter: e.target.value }));
-                    if (e.target.value) setStep(1);
-                  }}
-                  placeholder="Enter your hero's name"
-                  className="input input-bordered w-full max-w-xs mx-auto"
-                  autoFocus
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 1:
-        return (
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <h2 className="text-3xl font-bold text-secondary">Choose a sidekick</h2>
-              <div className="badge badge-md badge-primary">Step 2</div>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
-              {PET_PRESETS.map(preset => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => handlePresetSelect('pet', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation  ${
-                    formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
-                  }`}
-                >
-                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
-                    <span className="text-5xl mb-2">{preset.emoji}</span>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">{preset.name}</h3>
-                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            {customInputs.pet && (
-              <div className="form-control mt-6">
-                <label className="label justify-center">
-                  <span className="label-text text-lg">What's your sidekick's name?</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.sidekick}
-                  onChange={(e) => {
-                    setFormData(prev => ({ ...prev, sidekick: e.target.value }));
-                    if (e.target.value) setStep(2);
-                  }}
-                  placeholder="Enter your sidekick's name"
-                  className="input input-bordered w-full max-w-xs mx-auto"
-                  autoFocus
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 2:
-        return (
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-center gap-2 mb-6">
-              <h2 className="text-3xl font-bold text-secondary">Choose your adventure place</h2>
-              <div className="badge badge-md badge-primary">Step 3</div>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
-              {SETTING_PRESETS.map(preset => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  tabIndex={-1}
-                  onClick={() => handlePresetSelect('setting', preset.name)}
-                  className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
-                    formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
-                  }`}
-                >
-                  <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
-                    <span className="text-5xl mb-2">{preset.emoji}</span>
-                    <div className="space-y-2">
-                      <h3 className="text-xl font-bold">{preset.name}</h3>
-                      <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
-            {customInputs.setting && (
-              <div className="form-control mt-6">
-                <label className="label justify-center">
-                  <span className="label-text text-lg">What's your magical place called?</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.setting}
-                  onChange={(e) => setFormData(prev => ({ ...prev, setting: e.target.value }))}
-                  placeholder="Enter the name of your place"
-                  className="input input-bordered w-full max-w-xs mx-auto"
-                  autoFocus
-                />
-              </div>
-            )}
-          </div>
-        );
-
-      case 3:
-        return renderPageCountSelector();
-
-      case 4:
         return renderModeSelector();
-
+      case 1:
+        return renderCharacterSelector();
+      case 2:
+        return renderSidekickSelector();
+      case 3:
+        return renderSettingSelector();
+      case 4:
+        return renderPageCountSelector();
       default:
         return null;
     }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSubmit(formData);
   };
 
   return (
@@ -473,11 +481,11 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
               </div>
 
               <ul className="steps steps-horizontal w-full mt-6">
-                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Hero</li>
-                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
-                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
-                <li className={`step ${step >= 3 ? 'step-primary' : ''}`}>Length</li>
-                <li className={`step ${step >= 4 ? 'step-primary' : ''}`}>Mode</li>
+                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Mode</li>
+                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Hero</li>
+                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Sidekick</li>
+                <li className={`step ${step >= 3 ? 'step-primary' : ''}`}>Place</li>
+                <li className={`step ${step >= 4 ? 'step-primary' : ''}`}>Length</li>
               </ul>
             </div>
           </div>
