@@ -1,5 +1,3 @@
-Help me design a project build order and plan based on the below overviews. I would like to hand a copy to my developers so they can get to work. 
-
 # Technical Overview for Asset-Based Story Generation Implementation
 
 ## 1. System Architecture
