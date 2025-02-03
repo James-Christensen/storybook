@@ -9,13 +9,14 @@ The story should be enchanting, fun, and suitable for young children aged 2-6.
 
 IMPORTANT: The story MUST be exactly {pageCount} pages long, no more and no less.
 
-Return the story as a JSON array of exactly {pageCount} pages. Each page should contain:
-- pageNumber: The page number (1-{pageCount})
-- text: 2-3 sentences of story text that are easy to read aloud
-- imageDescription: A detailed description for generating an illustration of that page's scene. Focus on describing the visual elements, characters' appearances, emotions, and the setting.
+First, create a creative and unique title for the story. The title should be engaging and reflect the specific adventure that will happen in the story. Don't use generic titles like "{mainCharacter}'s Adventure in {setting}" - make it unique and specific to the story you're about to tell!
 
-The response must be valid JSON in this format:
+Then, create the story itself.
+
+Return everything as a JSON object with this structure:
 {
+  "title": "The creative story title you generated",
+  "subtitle": "A short, engaging subtitle that captures the essence of the adventure",
   "pages": [
     {
       "pageNumber": 1,
@@ -149,6 +150,8 @@ export async function POST(request: Request) {
 
       // Return the parsed pages directly
       return Response.json({ 
+        title: storyData.title,
+        subtitle: storyData.subtitle,
         pages: storyData.pages,
         generationMode: storyRequest.generationMode // Include the mode in response
       });

@@ -233,7 +233,8 @@ export const storyViewModel = {
 
     const data = await response.json();
     return {
-      title: `${request.mainCharacter}'s Adventure in ${request.setting}`,
+      title: data.title,
+      subtitle: data.subtitle,
       pages: data.pages,
       generationMode: request.generationMode
     };
@@ -299,6 +300,8 @@ export const storyViewModel = {
       const data = await response.json();
       console.log('\n=== Story Text Generated ===');
       console.log('Story structure:', {
+        title: data.title,
+        subtitle: data.subtitle,
         pageCount: data.pages?.length || 0,
         hasError: !!data.error
       });
@@ -320,7 +323,7 @@ export const storyViewModel = {
         try {
           options?.onGenerationProgress?.('drawing', page.pageNumber, data.pages.length);
           console.log(`\nProcessing page ${page.pageNumber}...`);
-          const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber, page.generationMode || 'ai');
+          const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber, request.generationMode);
           pages.push({
             ...page,
             imageUrl
@@ -343,13 +346,14 @@ export const storyViewModel = {
 
       console.log('\n=== Story Creation Complete ===');
       const story = {
-        title: request.sidekick !== 'None' 
-          ? `The Adventures of ${request.mainCharacter} and ${request.sidekick}`
-          : `The Adventures of ${request.mainCharacter}`,
-        pages
+        title: data.title,
+        subtitle: data.subtitle,
+        pages,
+        generationMode: request.generationMode
       };
       console.log('Final story structure:', {
         title: story.title,
+        subtitle: story.subtitle,
         pageCount: story.pages.length,
         pagesWithImages: story.pages.filter(p => p.imageUrl).length,
         pagesWithPlaceholders: story.pages.filter(p => p.imageUrl?.includes('placehold.co')).length

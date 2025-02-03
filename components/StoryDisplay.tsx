@@ -58,7 +58,10 @@ export default function StoryDisplay({ story, generationMode }: StoryDisplayProp
 
   return (
     <div className="max-w-4xl mx-auto mt-8 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">{story.title}</h1>
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold mb-2">{story.title}</h1>
+        <p className="text-xl text-gray-600 italic">{story.subtitle}</p>
+      </div>
       
       <div className="space-y-12">
         {story.pages.map((page, index) => (
