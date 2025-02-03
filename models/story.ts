@@ -1,3 +1,5 @@
+import { AssetMatchDetails } from '../utils/storyLogger';
+
 export type GenerationMode = 'ai' | 'asset';
 
 export interface StoryRequest {
@@ -13,6 +15,7 @@ export interface StoryPage {
   text: string;
   imageDescription: string;
   imageUrl?: string;
+  assetMatching?: AssetMatchDetails;
   metadata?: {
     pose?: string;
     background?: string;

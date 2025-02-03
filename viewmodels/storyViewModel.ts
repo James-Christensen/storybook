@@ -1,4 +1,5 @@
 import { Story, StoryRequest, StoryPage, GenerationMode } from '../models/story';
+import { AssetMatchDetails } from '../utils/storyLogger';
 
 const API_ENDPOINTS = {
   STORY: '/api/story',
@@ -144,7 +145,10 @@ export const storyViewModel = {
     return enhancedPrompt;
   },
 
-  async generateImage(imageDescription: string, pageNumber: number, mode: GenerationMode): Promise<string> {
+  async generateImage(imageDescription: string, pageNumber: number, mode: GenerationMode): Promise<{
+    imageUrl: string;
+    assetMatching?: AssetMatchDetails;
+  }> {
     console.log(`\n=== Generating image for page ${pageNumber} using ${mode} mode ===`);
     
     if (mode === 'asset') {
@@ -154,7 +158,10 @@ export const storyViewModel = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ description: imageDescription })
+        body: JSON.stringify({ 
+          description: imageDescription,
+          pageNumber,
+        })
       });
 
       if (!response.ok) {
@@ -164,7 +171,13 @@ export const storyViewModel = {
       }
 
       const data = await response.json();
-      return data.imageData;
+      return {
+        imageUrl: data.imageData,
+        assetMatching: {
+          pose: data.metadata.pose,
+          background: data.metadata.background
+        }
+      };
     } else {
       // Use AI generation (existing code)
       const enhancedPrompt = this.enhancePrompt(imageDescription);
@@ -214,7 +227,9 @@ export const storyViewModel = {
         throw new Error('No image was generated in the response');
       }
 
-      return `data:image/png;base64,${data.images[0]}`;
+      return {
+        imageUrl: `data:image/png;base64,${data.images[0]}`
+      };
     }
   },
 
@@ -244,7 +259,7 @@ export const storyViewModel = {
     story: Story,
     options?: {
       onProgress?: (currentPage: number, totalPages: number) => void;
-      onImageGenerated?: (pageIndex: number, imageUrl: string) => void;
+      onImageGenerated?: (pageIndex: number, imageUrl: string, assetMatching?: AssetMatchDetails) => void;
     }
   ): Promise<void> {
     const totalPages = story.pages.length;
@@ -253,16 +268,20 @@ export const storyViewModel = {
       options?.onProgress?.(i + 1, totalPages);
       
       try {
-        const imageUrl = await this.generateImage(
+        const result = await this.generateImage(
           story.pages[i].imageDescription, 
           i + 1,
-          story.generationMode || 'ai' // Default to 'ai' for backward compatibility
+          story.generationMode || 'ai'
         );
         
-        options?.onImageGenerated?.(i, imageUrl);
+        options?.onImageGenerated?.(i, result.imageUrl, result.assetMatching);
+        
+        // Update the story object with asset matching details
+        if (result.assetMatching) {
+          story.pages[i].assetMatching = result.assetMatching;
+        }
       } catch (error) {
         console.error(`Failed to generate image for page ${i + 1}:`, error);
-        // Continue with next image even if one fails
       }
     }
   },
@@ -323,10 +342,10 @@ export const storyViewModel = {
         try {
           options?.onGenerationProgress?.('drawing', page.pageNumber, data.pages.length);
           console.log(`\nProcessing page ${page.pageNumber}...`);
-          const imageUrl = await this.generateImage(page.imageDescription, page.pageNumber, request.generationMode);
+          const result = await this.generateImage(page.imageDescription, page.pageNumber, request.generationMode);
           pages.push({
             ...page,
-            imageUrl
+            imageUrl: result.imageUrl
           });
           console.log(`Successfully completed page ${page.pageNumber}`);
         } catch (error) {

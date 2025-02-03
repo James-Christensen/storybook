@@ -1,8 +1,25 @@
 import { NextResponse } from 'next/server';
-import { findBestPose, findBestBackground } from '../../../models/assets';
+import { findBestPose, findBestBackground, CHARACTER_POSES, BACKGROUNDS, CharacterPose, Background } from '../../../models/assets';
 import sharp from 'sharp';
 import path from 'path';
 import { storyLogger } from '../../../utils/storyLogger';
+
+// Add interfaces for type safety
+interface PoseMatch {
+  id: string;
+  name: string;
+  score: number;
+  matchedEmotions: string[];
+  matchedActions: string[];
+}
+
+interface BackgroundMatch {
+  id: string;
+  name: string;
+  score: number;
+  matchedSettings: string[];
+  contextualMatches: string[];
+}
 
 export async function POST(request: Request) {
   const startTime = Date.now();
@@ -120,7 +137,75 @@ export async function POST(request: Request) {
       const base64Image = result.toString('base64');
       console.log('Successfully composed image');
       
-      // Add selected assets to the response metadata
+      // Get all considered poses and backgrounds with their scores
+      const allPoseMatches = CHARACTER_POSES.map((pose: CharacterPose) => {
+        const matches = {
+          emotions: [] as string[],
+          actions: [] as string[]
+        };
+        let score = 0;
+        
+        pose.emotions.forEach((emotion: string) => {
+          if (description.toLowerCase().includes(emotion)) {
+            score += 2;
+            matches.emotions.push(emotion);
+          }
+        });
+        
+        pose.actions.forEach((action: string) => {
+          if (description.toLowerCase().includes(action)) {
+            score += 2;
+            matches.actions.push(action);
+          }
+        });
+
+        return {
+          id: pose.id,
+          name: pose.name,
+          score,
+          matchedEmotions: matches.emotions,
+          matchedActions: matches.actions
+        } as PoseMatch;
+      });
+
+      const allBackgroundMatches = BACKGROUNDS.map((bg: Background) => {
+        const matches = {
+          settings: [] as string[],
+          context: [] as string[]
+        };
+        let score = 0;
+
+        bg.settings.forEach((setting: string) => {
+          if (description.toLowerCase().includes(setting)) {
+            score += 2;
+            matches.settings.push(setting);
+          }
+        });
+
+        // Add contextual scoring
+        const contextualMatches = [
+          { terms: ['sleep', 'waking up', 'bedroom'], setting: 'bedroom' },
+          { terms: ['sand', 'wave', 'ocean', 'beach'], setting: 'beach' },
+          { terms: ['tree', 'nature', 'woods', 'forest'], setting: 'forest' },
+          { terms: ['playground', 'swing', 'slide', 'park'], setting: 'park' }
+        ];
+
+        contextualMatches.forEach(({ terms, setting }) => {
+          if (bg.id === setting && terms.some(term => description.toLowerCase().includes(term))) {
+            score += 3;
+            matches.context.push(...terms.filter(term => description.toLowerCase().includes(term)));
+          }
+        });
+
+        return {
+          id: bg.id,
+          name: bg.name,
+          score,
+          matchedSettings: matches.settings,
+          contextualMatches: matches.context
+        } as BackgroundMatch;
+      });
+
       return NextResponse.json({
         success: true,
         imageData: `data:image/jpeg;base64,${base64Image}`,
@@ -137,7 +222,8 @@ export async function POST(request: Request) {
               score: poseMatch.score,
               matchedEmotions: poseMatch.matches.emotions,
               matchedActions: poseMatch.matches.actions
-            }
+            },
+            alternativesConsidered: allPoseMatches
           },
           background: {
             selected: {
@@ -151,7 +237,8 @@ export async function POST(request: Request) {
               score: backgroundMatch.score,
               matchedSettings: backgroundMatch.matches.settings,
               contextualMatches: backgroundMatch.matches.context
-            }
+            },
+            alternativesConsidered: allBackgroundMatches
           },
           dimensions: {
             width: bgMetadata.width,
