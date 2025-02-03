@@ -21,6 +21,7 @@ export interface StoryPage {
 
 export interface Story {
   title: string;
+  subtitle: string;
   pages: StoryPage[];
   generationMode: GenerationMode;
 } 

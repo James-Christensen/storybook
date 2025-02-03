@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+__tests__/analysis_output/
+*.test.output.json
 
 # next.js
 /.next/
