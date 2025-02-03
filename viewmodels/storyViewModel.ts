@@ -1,5 +1,5 @@
 import { Story, StoryRequest, StoryPage, GenerationMode } from '../models/story';
-import { AssetMatchDetails } from '../utils/storyLogger';
+import { AssetMatchDetails, storyLogger } from '../utils/storyLogger';
 
 const API_ENDPOINTS = {
   STORY: '/api/story',
@@ -292,6 +292,8 @@ export const storyViewModel = {
       onGenerationProgress?: (status: 'writing' | 'drawing', page?: number, total?: number) => void 
     }
   ): Promise<Story> {
+    const startTime = Date.now(); // Add startTime at the beginning of the function
+    
     try {
       console.log('\n=== Starting Story Generation ===');
       console.log('Story request:', request);
@@ -342,16 +344,26 @@ export const storyViewModel = {
         try {
           options?.onGenerationProgress?.('drawing', page.pageNumber, data.pages.length);
           console.log(`\nProcessing page ${page.pageNumber}...`);
-          const result = await this.generateImage(page.imageDescription, page.pageNumber, request.generationMode);
-          pages.push({
+          
+          const result = await this.generateImage(
+            page.imageDescription, 
+            page.pageNumber, 
+            request.generationMode
+          );
+
+          // Create the page with all details including asset matching
+          const storyPage: StoryPage = {
             ...page,
-            imageUrl: result.imageUrl
-          });
+            imageUrl: result.imageUrl,
+            assetMatching: result.assetMatching // Include asset matching details
+          };
+          
+          pages.push(storyPage);
           console.log(`Successfully completed page ${page.pageNumber}`);
+          
         } catch (error) {
           console.error(`Error generating image for page ${page.pageNumber}:`, error);
           console.log('Falling back to placeholder image...');
-          // Fallback to placeholder on error
           pages.push({
             ...page,
             imageUrl: `https://placehold.co/800x600/${
@@ -363,24 +375,49 @@ export const storyViewModel = {
         }
       }
 
-      console.log('\n=== Story Creation Complete ===');
-      const story = {
+      // Create the complete story with all details
+      const story: Story = {
         title: data.title,
         subtitle: data.subtitle,
         pages,
         generationMode: request.generationMode
       };
+
+      // Log the story generation with all details
+      await storyLogger.logStoryGeneration({
+        timestamp: new Date().toISOString(),
+        request,
+        response: {
+          title: story.title,
+          subtitle: story.subtitle,
+          pages: story.pages
+        },
+        duration: Date.now() - startTime,
+        success: true
+      });
+
+      console.log('\n=== Story Creation Complete ===');
       console.log('Final story structure:', {
         title: story.title,
         subtitle: story.subtitle,
         pageCount: story.pages.length,
         pagesWithImages: story.pages.filter(p => p.imageUrl).length,
-        pagesWithPlaceholders: story.pages.filter(p => p.imageUrl?.includes('placehold.co')).length
+        pagesWithPlaceholders: story.pages.filter(p => p.imageUrl?.includes('placehold.co')).length,
+        pagesWithAssetMatching: story.pages.filter(p => p.assetMatching).length
       });
 
       return story;
 
     } catch (error) {
+      // Add error logging with duration
+      await storyLogger.logStoryGeneration({
+        timestamp: new Date().toISOString(),
+        request,
+        duration: Date.now() - startTime,
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
       console.error('\n=== Story Creation Failed ===');
       console.error('Error details:', error);
       if (error instanceof Error && error.name === 'AbortError') {

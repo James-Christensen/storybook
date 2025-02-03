@@ -55,7 +55,7 @@ export interface StoryGenerationLog {
     pageCount: number;
     generationMode: string;
   };
-  response: {
+  response?: {
     title: string;
     subtitle: string;
     pages: Array<{
@@ -73,23 +73,20 @@ export interface StoryGenerationLog {
 export const storyLogger = {
   async logStoryGeneration(log: StoryGenerationLog) {
     try {
-      // Create logs directory if it doesn't exist
-      const logsDir = path.join(process.cwd(), 'logs', 'stories');
-      await fs.mkdir(logsDir, { recursive: true });
+      const response = await fetch(`${window.location.origin}/api/log`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(log)
+      });
 
-      // Create filename with timestamp and generation mode
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const mode = log.request.generationMode;
-      const filename = `story_${mode}_${timestamp}.json`;
-      
-      // Write log to file with pretty formatting
-      await fs.writeFile(
-        path.join(logsDir, filename),
-        JSON.stringify(log, null, 2),
-        'utf-8'
-      );
+      if (!response.ok) {
+        throw new Error('Failed to log story generation');
+      }
 
-      console.log(`Story generation logged to: ${filename}`);
+      const data = await response.json();
+      console.log(`Story generation logged to: ${data.filename}`);
     } catch (error) {
       console.error('Failed to log story generation:', error);
     }
