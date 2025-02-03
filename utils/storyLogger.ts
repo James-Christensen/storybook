@@ -1,6 +1,3 @@
-import fs from 'fs/promises';
-import path from 'path';
-
 export interface AssetMatchDetails {
   pose: {
     selected: {
@@ -73,7 +70,8 @@ export interface StoryGenerationLog {
 export const storyLogger = {
   async logStoryGeneration(log: StoryGenerationLog) {
     try {
-      const response = await fetch(`${window.location.origin}/api/log`, {
+      // Always use the API route
+      const response = await fetch('/api/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -87,8 +85,20 @@ export const storyLogger = {
 
       const data = await response.json();
       console.log(`Story generation logged to: ${data.filename}`);
+      return data;
     } catch (error) {
       console.error('Failed to log story generation:', error);
     }
   }
-}; 
+};
+
+function formatTimestamp(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: '2-digit',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  }).replace(/,/g, '').replace(/\s+/g, '_');
+} 
