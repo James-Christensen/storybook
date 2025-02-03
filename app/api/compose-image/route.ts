@@ -2,34 +2,41 @@ import { NextResponse } from 'next/server';
 import { findBestPose, findBestBackground } from '../../../models/assets';
 import sharp from 'sharp';
 import path from 'path';
+import { storyLogger } from '../../../utils/storyLogger';
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+  
   try {
-    const { description } = await request.json();
+    const { description, pageNumber, storyId } = await request.json();
     console.log('\n=== Starting Image Composition ===');
     console.log('Processing scene description:', description);
     
     // Find the best matching pose and background based on the description
-    const pose = findBestPose(description);
-    const background = findBestBackground(description);
+    const poseMatch = findBestPose(description);
+    const backgroundMatch = findBestBackground(description);
     
     console.log('\n=== Asset Selection Summary ===');
     console.log('Selected pose:', {
-      id: pose.id,
-      name: pose.name,
-      description: pose.description
+      id: poseMatch.pose.id,
+      name: poseMatch.pose.name,
+      description: poseMatch.pose.description,
+      emotions: poseMatch.pose.emotions,
+      actions: poseMatch.pose.actions
     });
     console.log('Selected background:', {
-      id: background.id,
-      name: background.name,
-      description: background.description
+      id: backgroundMatch.background.id,
+      name: backgroundMatch.background.name,
+      description: backgroundMatch.background.description,
+      settings: backgroundMatch.background.settings,
+      timeOfDay: backgroundMatch.background.timeOfDay
     });
     
     try {
       // Get the absolute paths for the images
       const workspacePath = process.cwd();
-      const bgPath = path.join(workspacePath, 'public', background.imageUrl);
-      const posePath = path.join(workspacePath, 'public', pose.imageUrl);
+      const bgPath = path.join(workspacePath, 'public', backgroundMatch.background.imageUrl);
+      const posePath = path.join(workspacePath, 'public', poseMatch.pose.imageUrl);
 
       console.log('\n=== Image Processing ===');
       console.log('Loading images from:', {
@@ -113,12 +120,39 @@ export async function POST(request: Request) {
       const base64Image = result.toString('base64');
       console.log('Successfully composed image');
       
+      // Add selected assets to the response metadata
       return NextResponse.json({
         success: true,
         imageData: `data:image/jpeg;base64,${base64Image}`,
         metadata: {
-          pose: pose.id,
-          background: background.id,
+          pose: {
+            selected: {
+              id: poseMatch.pose.id,
+              name: poseMatch.pose.name,
+              description: poseMatch.pose.description,
+              emotions: poseMatch.pose.emotions,
+              actions: poseMatch.pose.actions
+            },
+            matchDetails: {
+              score: poseMatch.score,
+              matchedEmotions: poseMatch.matches.emotions,
+              matchedActions: poseMatch.matches.actions
+            }
+          },
+          background: {
+            selected: {
+              id: backgroundMatch.background.id,
+              name: backgroundMatch.background.name,
+              description: backgroundMatch.background.description,
+              settings: backgroundMatch.background.settings,
+              timeOfDay: backgroundMatch.background.timeOfDay
+            },
+            matchDetails: {
+              score: backgroundMatch.score,
+              matchedSettings: backgroundMatch.matches.settings,
+              contextualMatches: backgroundMatch.matches.context
+            }
+          },
           dimensions: {
             width: bgMetadata.width,
             height: bgMetadata.height

@@ -96,8 +96,27 @@ export const BACKGROUNDS: Background[] = [
   }
 ];
 
-// Helper function to find the best matching pose for a scene description
-export function findBestPose(description: string): CharacterPose {
+// Add these interfaces at the top of the file
+interface PoseMatchResult {
+  pose: CharacterPose;
+  score: number;
+  matches: {
+    emotions: string[];
+    actions: string[];
+  };
+}
+
+interface BackgroundMatchResult {
+  background: Background;
+  score: number;
+  matches: {
+    settings: string[];
+    context: string[];
+  };
+}
+
+// Modify the findBestPose function to return full match details
+export function findBestPose(description: string): PoseMatchResult {
   const desc = description.toLowerCase();
   console.log('\n=== Pose Matching Process ===');
   console.log('Scene description:', description);
@@ -131,22 +150,14 @@ export function findBestPose(description: string): CharacterPose {
     return { pose, score, matches };
   });
   
-  // Return the pose with the highest score, or neutral as fallback
-  const bestMatch = scores.reduce((best, current) => 
+  // Return the pose with the highest score and all scoring details
+  return scores.reduce((best, current) => 
     current.score > best.score ? current : best
   , { pose: CHARACTER_POSES[0], score: -1, matches: { emotions: [], actions: [] } });
-  
-  console.log('\n=== Selected Pose ===');
-  console.log('Name:', bestMatch.pose.name);
-  console.log('Score:', bestMatch.score);
-  console.log('Matched emotions:', bestMatch.matches.emotions.join(', ') || 'none');
-  console.log('Matched actions:', bestMatch.matches.actions.join(', ') || 'none');
-  
-  return bestMatch.pose;
 }
 
-// Helper function to find the best matching background for a scene
-export function findBestBackground(description: string): Background {
+// Modify the findBestBackground function similarly
+export function findBestBackground(description: string): BackgroundMatchResult {
   const desc = description.toLowerCase();
   console.log('\n=== Background Matching Process ===');
   console.log('Scene description:', description);
@@ -201,5 +212,5 @@ export function findBestBackground(description: string): Background {
   console.log('Matched settings:', bestMatch.matches.settings.join(', ') || 'none');
   console.log('Contextual matches:', bestMatch.matches.context.join(', ') || 'none');
   
-  return bestMatch.background;
+  return bestMatch;
 } 

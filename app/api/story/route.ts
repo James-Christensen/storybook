@@ -1,4 +1,5 @@
 import { Story, StoryRequest } from '../../../models/story';
+import { storyLogger } from '../../../utils/storyLogger';
 
 const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
 const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
@@ -95,8 +96,18 @@ Remember to vary the poses throughout the story to make it dynamic and engaging.
 `;
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+  let log: any = {
+    timestamp: new Date().toISOString(),
+    request: null,
+    response: null,
+    duration: 0,
+    success: false
+  };
+
   try {
     const storyRequest: StoryRequest = await request.json();
+    log.request = storyRequest;
     console.log('Generating story for:', storyRequest);
     
     // Create a function to process template strings with the request context
@@ -148,20 +159,35 @@ export async function POST(request: Request) {
         throw new Error('Invalid story format: missing pages array');
       }
 
-      // Return the parsed pages directly
+      // Update log with successful response
+      log.success = true;
+      log.response = storyData;
+      log.duration = Date.now() - startTime;
+
+      // Log the story generation
+      await storyLogger.logStoryGeneration(log);
+
       return Response.json({ 
         title: storyData.title,
         subtitle: storyData.subtitle,
         pages: storyData.pages,
-        generationMode: storyRequest.generationMode // Include the mode in response
+        generationMode: storyRequest.generationMode
       });
 
     } catch (parseError) {
+      log.error = 'Story was not in the expected JSON format';
+      log.duration = Date.now() - startTime;
+      await storyLogger.logStoryGeneration(log);
+      
       console.error('Failed to parse story JSON:', parseError);
       throw new Error('Story was not in the expected JSON format');
     }
 
   } catch (error) {
+    log.error = error instanceof Error ? error.message : 'Failed to generate story';
+    log.duration = Date.now() - startTime;
+    await storyLogger.logStoryGeneration(log);
+
     console.error('Story generation error:', error);
     return Response.json(
       { error: error instanceof Error ? error.message : 'Failed to generate story' },
