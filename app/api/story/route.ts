@@ -197,13 +197,5 @@ export async function POST(request: Request) {
 } 
 
 
-//Flux Image Generation
-
-//Need two actions. One to generate the flux specific prompt based on the image description and one to generate the image.  
-
-//Flux Prompt Generation- Use the image description to generate a detailed prompt for diffusion models. 
-
-//API Call to drawthings flux model. 
-
 
 
