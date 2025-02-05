@@ -1,199 +1,134 @@
 import { Story, StoryRequest } from '../../../models/story';
 import { storyLogger } from '../../../utils/storyLogger';
+import { STORY_PROMPT } from './prompts/storyPrompt';
+import { ASSET_MODE_PROMPT } from './prompts/assetPrompt';
+import { generateStoryStructure, replaceTemplateVariables } from './utils/templateProcessor';
 
+/**
+ * Configuration for the LLM service
+ */
 const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
 const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
 
-const STORY_PROMPT = `
-Create a magical children's story about {mainCharacter}${(request: StoryRequest) => request.sidekick !== 'None' ? ` and their friend {sidekick}` : ''} having an adventure in {setting}.
-The story should be enchanting, fun, and suitable for young children aged 2-6.
-
-IMPORTANT: The story MUST be exactly {pageCount} pages long, no more and no less.
-
-First, create a creative and unique title for the story. The title should be engaging and reflect the specific adventure that will happen in the story. Don't use generic titles like "{mainCharacter}'s Adventure in {setting}" - make it unique and specific to the story you're about to tell!
-
-Then, create the story itself.
-
-Return everything as a JSON object with this structure:
-{
-  "title": "The creative story title you generated",
-  "subtitle": "A short, engaging subtitle that captures the essence of the adventure",
-  "pages": [
-    {
-      "pageNumber": 1,
-      "text": "string with 2-3 sentences",
-      "imageDescription": "detailed visual description for AI image generation"
-    },
-    ...
-  ]
+/**
+ * Parses and validates the LLM response
+ */
+async function parseStoryResponse(data: any): Promise<Story> {
+    const storyData = JSON.parse(data.response);
+    if (!storyData.pages || !Array.isArray(storyData.pages)) {
+        throw new Error('Invalid story format: missing pages array');
+    }
+    return storyData;
 }
 
-Follow this story structure across exactly {pageCount} pages:
-${(request: StoryRequest) => {
-  const pages = [];
-  const totalPages = request.pageCount;
-  
-  // Opening (always page 1)
-  pages.push(`1. Opening Scene: Introduce {mainCharacter}${request.sidekick !== 'None' ? ` and {sidekick}` : ''} in their everyday setting, showing ${request.sidekick !== 'None' ? 'their special friendship' : 'their personality'}`);
-  
-  if (totalPages === 3) {
-    // For 3-page stories
-    pages.push(`2. Adventure: ${request.sidekick !== 'None' ? 'They discover' : `${request.mainCharacter} discovers`} something magical in {setting} and face an exciting challenge`);
-    pages.push(`3. Happy Ending: ${request.sidekick !== 'None' ? 'They celebrate' : `${request.mainCharacter} celebrates`} their success and keep a special memory of the adventure`);
-  } else {
-    // For longer stories
-    // Magical Discovery (always page 2)
-    pages.push(`2. Magical Discovery: ${request.sidekick !== 'None' ? 'They discover' : `${request.mainCharacter} discovers`} something extraordinary in {setting} that sparks curiosity and sets up the adventure`);
-    
-    // Middle pages (challenges and development)
-    const middlePages = totalPages - 3; // Subtract opening, discovery, and ending
-    for (let i = 0; i < middlePages; i++) {
-      const pageNum = i + 3;
-      if (i === 0) {
-        pages.push(`${pageNum}. First Challenge: ${request.sidekick !== 'None' ? 'They face' : `${request.mainCharacter} faces`} their first exciting challenge`);
-      } else if (i === Math.floor(middlePages / 2)) {
-        pages.push(`${pageNum}. Main Challenge: ${request.sidekick !== 'None' ? 'They work together using their unique abilities' : `${request.mainCharacter} uses creativity and courage`} to tackle the biggest challenge`);
-      } else {
-        pages.push(`${pageNum}. Adventure Progress: ${request.sidekick !== 'None' ? 'Their teamwork' : `${request.mainCharacter}'s determination`} leads to exciting developments`);
-      }
-    }
-    
-    // Happy Ending (always last page)
-    pages.push(`${totalPages}. Happy Ending: A heartwarming conclusion where ${request.sidekick !== 'None' ? 'they celebrate' : `${request.mainCharacter} celebrates`} the adventure with a special memory or magical keepsake`);
-  }
-  
-  return pages.join('\n');
-}}
-
-Important guidelines:
-- Keep the tone warm and friendly throughout
-- Include moments of humor and wonder
-- Show the characters expressing different emotions
-- ${(request: StoryRequest) => request.sidekick !== 'None' ? 'Emphasize friendship, kindness, and working together' : 'Emphasize creativity, bravery, and self-discovery'}
-- Make sure each page's text flows naturally when read aloud
-- Include vivid sensory details in both text and image descriptions
-- Make the image descriptions detailed enough to generate consistent character appearances across all illustrations
-- IMPORTANT: The story MUST contain exactly {pageCount} pages, no more and no less
-
-Make the story engaging and the image descriptions vivid and detailed, maintaining consistent character appearances throughout all scenes.
-`;
-
-// Add asset-specific prompt additions
-const ASSET_MODE_PROMPT = `
-IMPORTANT ADDITIONAL GUIDELINES FOR ASSET-BASED MODE:
-
-For each page's imageDescription, focus on these specific elements that will determine which pre-made assets to use:
-1. Character's emotion and action (choose from: neutral/standing, happy/excited, thinking/curious, celebrating/jumping, running/exploring)
-2. Setting type (choose from: bedroom/home, park/playground, forest/nature, beach/ocean)
-
-The descriptions should clearly indicate which pose and background would best match the scene.
-Examples:
-- "Maddie stands thoughtfully in her cozy bedroom, hand on chin as she wonders what adventure awaits."
-- "Maddie runs excitedly through the magical forest, exploring every path with boundless energy."
-
-Keep the actions and settings aligned with our available assets while maintaining an engaging story.
-Remember to vary the poses throughout the story to make it dynamic and engaging.
-`;
-
+/**
+ * POST handler for story generation
+ * 
+ * Input (StoryRequest):
+ * - mainCharacter: string - The protagonist's name
+ * - sidekick: string - Companion character name or "None"
+ * - setting: string - Story location/environment
+ * - pageCount: number - Number of pages (must be ≥ 2)
+ * - generationMode: "default" | "asset" - Whether to use pre-made assets
+ * 
+ * Output (Success):
+ * {
+ *   title: string - Unique, creative story title
+ *   subtitle: string - Brief story description
+ *   pages: Array<{
+ *     pageNumber: number
+ *     text: string - 2-3 sentences of story content
+ *     imageDescription: string - Detailed scene description
+ *   }>
+ *   generationMode: "default" | "asset"
+ * }
+ * 
+ * Output (Error):
+ * {
+ *   error: string - Error description
+ *   status: 500
+ * }
+ * 
+ * The route:
+ * 1. Processes the request into a template
+ * 2. Sends the template to the LLM
+ * 3. Validates and formats the response
+ * 4. Logs the generation attempt
+ */
 export async function POST(request: Request) {
-  const startTime = Date.now();
-  let log: any = {
-    timestamp: new Date().toISOString(),
-    request: null,
-    response: null,
-    duration: 0,
-    success: false
-  };
-
-  try {
-    const storyRequest: StoryRequest = await request.json();
-    log.request = storyRequest;
-    console.log('Generating story for:', storyRequest);
-    
-    // Create a function to process template strings with the request context
-    const processTemplate = (template: string) => {
-      return template.replace(/\$\{(request: StoryRequest) => ([^}]+)\}/g, (_, params, code) => {
-        return eval(`((request: any) => ${code})(storyRequest)`);
-      })
-      .replace(/\{pageCount\}/g, storyRequest.pageCount.toString())
-      .replace('{mainCharacter}', storyRequest.mainCharacter)
-      .replace('{sidekick}', storyRequest.sidekick)
-      .replace('{setting}', storyRequest.setting);
+    const startTime = Date.now();
+    let log: any = {
+        timestamp: new Date().toISOString(),
+        request: null,
+        response: null,
+        duration: 0,
+        success: false
     };
 
-    // Add asset-mode specific instructions if needed
-    const finalPrompt = storyRequest.generationMode === 'asset' 
-      ? STORY_PROMPT + ASSET_MODE_PROMPT 
-      : STORY_PROMPT;
-
-    const prompt = processTemplate(finalPrompt);
-    console.log('Sending prompt to Ollama:', prompt);
-
-    const response = await fetch(OLLAMA_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: OLLAMA_MODEL,
-        prompt: prompt,
-        format: 'json',
-        stream: false,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Ollama error response:', errorText);
-      throw new Error(`Failed to generate story: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('Ollama response:', data);
-    
     try {
-      // Parse the response text as JSON since it's embedded in the Ollama response
-      const storyData = JSON.parse(data.response);
-      
-      if (!storyData.pages || !Array.isArray(storyData.pages)) {
-        throw new Error('Invalid story format: missing pages array');
-      }
+        const storyRequest: StoryRequest = await request.json();
+        log.request = storyRequest;
+        console.log('Generating story for:', storyRequest);
 
-      // Update log with successful response
-      log.success = true;
-      log.response = storyData;
-      log.duration = Date.now() - startTime;
+        // Generate the story structure and process the template
+        const structure = generateStoryStructure(storyRequest);
+        const basePrompt = storyRequest.generationMode === 'asset' 
+            ? `${STORY_PROMPT}\n${ASSET_MODE_PROMPT}` 
+            : STORY_PROMPT;
+        const prompt = replaceTemplateVariables(basePrompt, storyRequest, structure);
+        
+        console.log('Sending prompt to Ollama:', prompt);
 
-      // Log the story generation
-      await storyLogger.logStoryGeneration(log);
+        const response = await fetch(OLLAMA_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: OLLAMA_MODEL,
+                prompt: prompt,
+                format: 'json',
+                stream: false,
+            }),
+        });
 
-      return Response.json({ 
-        title: storyData.title,
-        subtitle: storyData.subtitle,
-        pages: storyData.pages,
-        generationMode: storyRequest.generationMode
-      });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Ollama error response:', errorText);
+            throw new Error(`Failed to generate story: ${errorText}`);
+        }
 
-    } catch (parseError) {
-      log.error = 'Story was not in the expected JSON format';
-      log.duration = Date.now() - startTime;
-      await storyLogger.logStoryGeneration(log);
-      
-      console.error('Failed to parse story JSON:', parseError);
-      throw new Error('Story was not in the expected JSON format');
+        const data = await response.json();
+        console.log('Ollama response:', data);
+
+        const storyData = await parseStoryResponse(data);
+
+        // Update log with successful response
+        log.success = true;
+        log.response = storyData;
+        log.duration = Date.now() - startTime;
+
+        // Log the story generation
+        await storyLogger.logStoryGeneration(log);
+
+        return Response.json({ 
+            title: storyData.title,
+            subtitle: storyData.subtitle,
+            pages: storyData.pages,
+            generationMode: storyRequest.generationMode
+        });
+
+    } catch (error) {
+        log.error = error instanceof Error ? error.message : 'Failed to generate story';
+        log.duration = Date.now() - startTime;
+        await storyLogger.logStoryGeneration(log);
+
+        console.error('Story generation error:', error);
+        return Response.json(
+            { error: error instanceof Error ? error.message : 'Failed to generate story' },
+            { status: 500 }
+        );
     }
-
-  } catch (error) {
-    log.error = error instanceof Error ? error.message : 'Failed to generate story';
-    log.duration = Date.now() - startTime;
-    await storyLogger.logStoryGeneration(log);
-
-    console.error('Story generation error:', error);
-    return Response.json(
-      { error: error instanceof Error ? error.message : 'Failed to generate story' },
-      { status: 500 }
-    );
-  }
 } 
 
 
