@@ -1,4 +1,5 @@
 import { POST } from '../app/api/story/route';
+import { Story } from '../models/story';
 
 describe('Story Generation API', () => {
   const createRequest = (input: any) => {
@@ -115,5 +116,53 @@ describe('Story Generation API', () => {
 
     expect(response.status).toBe(400);
     expect(result).toHaveProperty('error');
+  }, 30000);
+
+  it('should generate asset-mode story with consistent character actions', async () => {
+    const testInput = {
+      mainCharacter: 'Maddie',
+      sidekick: 'Tom',
+      setting: 'forest',
+      pageCount: 2,
+      generationMode: 'asset'
+    };
+
+    const response = await POST(createRequest(testInput));
+    const story = await response.json() as Story;
+
+    // Log the test result
+    logTestResult('asset-mode-character-consistency', {
+      input: testInput,
+      response: story,
+      error: response.status !== 200 ? story : undefined
+    });
+
+    // Basic response validation
+    expect(response.status).toBe(200);
+    expect(story).toBeDefined();
+    expect(story.pages).toHaveLength(testInput.pageCount);
+
+    // Check each page's image description
+    const validCharacterActions = ['standing', 'excited', 'thinking', 'celebrating', 'running', 'exploring'];
+    const validSettings = ['bedroom', 'park', 'forest', 'beach'];
+    
+    story.pages.forEach(page => {
+      const desc = page.imageDescription.toLowerCase();
+      
+      // Verify Maddie's actions are from valid set
+      expect(
+        validCharacterActions.some(action => desc.includes(action))
+      ).toBe(true);
+
+      // Verify setting is from valid set
+      expect(
+        validSettings.some(setting => desc.includes(setting))
+      ).toBe(true);
+
+      // If Tom is present, verify dog-appropriate actions
+      if (testInput.sidekick === 'Tom') {
+        expect(desc).not.toMatch(/tom.*(holding|hands|writing|drawing)/i);
+      }
+    });
   }, 30000);
 }); 
