@@ -21,9 +21,16 @@ describe('Story Generation API', () => {
     };
 
     const response = await POST(createRequest(testInput));
-    expect(response.status).toBe(200);
-    
     const story = await response.json();
+
+    // Log the test result
+    logTestResult('story-with-sidekick', {
+      input: testInput,
+      response: story,
+      error: response.status !== 200 ? story : undefined
+    });
+
+    expect(response.status).toBe(200);
     expect(story).toBeDefined();
     expect(story.title).toContain(testInput.mainCharacter);
     expect(story.pages).toHaveLength(testInput.pageCount);
@@ -41,9 +48,16 @@ describe('Story Generation API', () => {
     };
 
     const response = await POST(createRequest(testInput));
-    expect(response.status).toBe(200);
-    
     const story = await response.json();
+
+    // Log the test result
+    logTestResult('story-without-sidekick', {
+      input: testInput,
+      response: story,
+      error: response.status !== 200 ? story : undefined
+    });
+
+    expect(response.status).toBe(200);
     expect(story).toBeDefined();
     expect(story.title).toContain(testInput.mainCharacter);
     expect(story.pages).toHaveLength(testInput.pageCount);
@@ -61,9 +75,16 @@ describe('Story Generation API', () => {
     };
 
     const response = await POST(createRequest(testInput));
-    expect(response.status).toBe(200);
-    
     const story = await response.json();
+
+    // Log the test result
+    logTestResult('longer-story', {
+      input: testInput,
+      response: story,
+      error: response.status !== 200 ? story : undefined
+    });
+
+    expect(response.status).toBe(200);
     expect(story).toBeDefined();
     expect(story.pages).toHaveLength(testInput.pageCount);
     expect(story.pages).toEqual(
@@ -87,9 +108,16 @@ describe('Story Generation API', () => {
     };
 
     const response = await POST(createRequest(testInput));
+    const result = await response.json();
+
+    // Log the test result
+    logTestResult('invalid-input', {
+      input: testInput,
+      response: result,
+      error: response.status !== 200 ? result : undefined
+    });
+
     expect(response.status).toBe(500);
-    
-    const error = await response.json();
-    expect(error).toHaveProperty('error');
+    expect(result).toHaveProperty('error');
   }, 30000);
 }); 
