@@ -45,3 +45,6 @@ next-env.d.ts
 # Story generation logs
 /logs
 /logs/stories
+
+# test-logs
+test-logs/

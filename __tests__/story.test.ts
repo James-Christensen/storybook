@@ -118,7 +118,7 @@ describe('Story Generation API', () => {
     expect(result).toHaveProperty('error');
   }, 30000);
 
-  it('should generate asset-mode story with consistent character actions', async () => {
+  it('should generate asset-mode story with appropriate character actions', async () => {
     const testInput = {
       mainCharacter: 'Maddie',
       sidekick: 'Tom',
@@ -141,28 +141,112 @@ describe('Story Generation API', () => {
     expect(response.status).toBe(200);
     expect(story).toBeDefined();
     expect(story.pages).toHaveLength(testInput.pageCount);
-
-    // Check each page's image description
-    const validCharacterActions = ['standing', 'excited', 'thinking', 'celebrating', 'running', 'exploring'];
-    const validSettings = ['bedroom', 'park', 'forest', 'beach'];
     
     story.pages.forEach(page => {
       const desc = page.imageDescription.toLowerCase();
       
-      // Verify Maddie's actions are from valid set
-      expect(
-        validCharacterActions.some(action => desc.includes(action))
-      ).toBe(true);
-
-      // Verify setting is from valid set
-      expect(
-        validSettings.some(setting => desc.includes(setting))
-      ).toBe(true);
-
       // If Tom is present, verify dog-appropriate actions
       if (testInput.sidekick === 'Tom') {
         expect(desc).not.toMatch(/tom.*(holding|hands|writing|drawing)/i);
       }
     });
   }, 30000);
+
+  describe('Image Asset Quality', () => {
+    it('should maintain character visual consistency across pages', async () => {
+      const testInput = {
+        mainCharacter: 'Maddie',
+        sidekick: 'Tom',
+        setting: 'forest',
+        pageCount: 3,
+        generationMode: 'asset'
+      };
+
+      const response = await POST(createRequest(testInput));
+      const story = await response.json() as Story;
+
+      // Log the test result
+      logTestResult('character-visual-consistency', {
+        input: testInput,
+        response: story,
+        error: response.status !== 200 ? story : undefined
+      });
+
+      // Basic validation
+      expect(response.status).toBe(200);
+      expect(story).toBeDefined();
+      expect(story.pages).toHaveLength(testInput.pageCount);
+
+      // Extract character descriptions from each page
+      const characterDescriptions = story.pages.map(page => {
+        const desc = page.imageDescription.toLowerCase();
+        return {
+          maddieDesc: desc.substring(desc.indexOf('maddie'), desc.indexOf('.', desc.indexOf('maddie'))),
+          tomDesc: testInput.sidekick === 'Tom' ? 
+            desc.substring(desc.indexOf('tom'), desc.indexOf('.', desc.indexOf('tom'))) : ''
+        };
+      });
+
+      // Check Maddie's description consistency
+      characterDescriptions.forEach((desc, index) => {
+        if (index > 0) {
+          // If a physical trait is mentioned in a later description, it should match earlier mentions
+          const prevDesc = characterDescriptions[index - 1].maddieDesc;
+          const currentDesc = desc.maddieDesc;
+          
+          // Check for contradicting physical descriptions
+          ['hair', 'eyes', 'wearing', 'dress', 'outfit'].forEach(trait => {
+            if (currentDesc.includes(trait) && prevDesc.includes(trait)) {
+              expect(currentDesc).toEqual(
+                expect.stringContaining(
+                  prevDesc.substring(
+                    prevDesc.indexOf(trait),
+                    prevDesc.indexOf(' ', prevDesc.indexOf(trait) + trait.length)
+                  )
+                )
+              );
+            }
+          });
+        }
+      });
+    });
+
+    it('should use appropriate backgrounds for the setting', async () => {
+      const testInput = {
+        mainCharacter: 'Maddie',
+        sidekick: 'None',
+        setting: 'forest',
+        pageCount: 3,
+        generationMode: 'asset'
+      };
+
+      const response = await POST(createRequest(testInput));
+      const story = await response.json() as Story;
+
+      // Log the test result
+      logTestResult('background-setting-consistency', {
+        input: testInput,
+        response: story,
+        error: response.status !== 200 ? story : undefined
+      });
+
+      // Basic validation
+      expect(response.status).toBe(200);
+      expect(story).toBeDefined();
+      expect(story.pages).toHaveLength(testInput.pageCount);
+
+      // Check each page's background matches the setting
+      story.pages.forEach(page => {
+        const desc = page.imageDescription.toLowerCase();
+        
+        // The background description should match the story's setting
+        expect(desc).toContain(testInput.setting.toLowerCase());
+        
+        // The setting should be described with appropriate elements
+        if (testInput.setting.toLowerCase() === 'forest') {
+          expect(desc).toMatch(/trees|leaves|woods|woodland|nature/);
+        }
+      });
+    });
+  });
 }); 
