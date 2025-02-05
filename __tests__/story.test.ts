@@ -17,7 +17,7 @@ describe('Story Generation API', () => {
       mainCharacter: 'Alice',
       sidekick: 'Rabbit',
       setting: 'Wonderland',
-      pageCount: 2,
+      pageCount: 3,
       generationMode: 'asset'
     };
 
@@ -44,7 +44,7 @@ describe('Story Generation API', () => {
       mainCharacter: 'Max',
       sidekick: 'None',
       setting: 'Forest',
-      pageCount: 2,
+      pageCount: 3,
       generationMode: 'asset'
     };
 
@@ -71,7 +71,7 @@ describe('Story Generation API', () => {
       mainCharacter: 'Sophie',
       sidekick: 'Dragon',
       setting: 'Castle',
-      pageCount: 4,
+      pageCount: 5,
       generationMode: 'asset'
     };
 
@@ -123,7 +123,7 @@ describe('Story Generation API', () => {
       mainCharacter: 'Maddie',
       sidekick: 'Tom',
       setting: 'forest',
-      pageCount: 2,
+      pageCount: 3,
       generationMode: 'asset'
     };
 
