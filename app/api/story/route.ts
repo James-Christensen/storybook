@@ -3,6 +3,7 @@ import { storyLogger } from '../../../utils/storyLogger';
 import { STORY_PROMPT } from './prompts/storyPrompt';
 import { ASSET_MODE_PROMPT } from './prompts/assetPrompt';
 import { generateStoryStructure, replaceTemplateVariables } from './utils/templateProcessor';
+import { validateStoryRequest } from './utils/validation';
 
 /**
  * Configuration for the LLM service
@@ -68,6 +69,18 @@ export async function POST(request: Request) {
     try {
         const storyRequest: StoryRequest = await request.json();
         log.request = storyRequest;
+
+        // Validate the request
+        try {
+            validateStoryRequest(storyRequest);
+        } catch (validationError) {
+            console.error('Validation error:', validationError);
+            return Response.json(
+                { error: validationError instanceof Error ? validationError.message : 'Invalid request' },
+                { status: 400 }
+            );
+        }
+
         console.log('Generating story for:', storyRequest);
 
         // Generate the story structure and process the template

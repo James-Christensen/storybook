@@ -99,25 +99,21 @@ describe('Story Generation API', () => {
   }, 30000);
 
   it('should handle invalid input gracefully', async () => {
-    const testInput = {
-      mainCharacter: '',  // Empty character name
-      sidekick: 'Dragon',
-      setting: 'Castle',
-      pageCount: -1,  // Invalid page count
-      generationMode: 'asset'
+    const invalidInput = {
+      // Missing required fields
     };
 
-    const response = await POST(createRequest(testInput));
-    const result = await response.json();
-
-    // Log the test result
-    logTestResult('invalid-input', {
-      input: testInput,
-      response: result,
-      error: response.status !== 200 ? result : undefined
+    const response = await fetch('http://localhost:3000/api/story', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invalidInput),
     });
 
-    expect(response.status).toBe(500);
+    const result = await response.json();
+
+    expect(response.status).toBe(400);
     expect(result).toHaveProperty('error');
   }, 30000);
 }); 
