@@ -77,6 +77,8 @@ interface InteractionType {
   type: 'playing' | 'exploring' | 'talking' | 'resting' | 'none';
   proximity: 'close' | 'medium' | 'far';
   facing: 'same-direction' | 'towards-each-other' | 'away' | 'independent';
+  position: 'center' | 'left' | 'right';  // New: Overall position in scene
+  arrangement: 'side-by-side' | 'diagonal' | 'staggered';  // New: How characters are arranged
 }
 
 function analyzeInteraction(description: string): InteractionType {
@@ -86,7 +88,9 @@ function analyzeInteraction(description: string): InteractionType {
   let interaction: InteractionType = {
     type: 'none',
     proximity: 'medium',
-    facing: 'same-direction'
+    facing: 'same-direction',
+    position: 'center',
+    arrangement: 'side-by-side'
   };
 
   // Analyze for playing interactions
@@ -94,24 +98,37 @@ function analyzeInteraction(description: string): InteractionType {
     interaction.type = 'playing';
     interaction.proximity = 'close';
     interaction.facing = 'towards-each-other';
+    interaction.arrangement = 'diagonal';
+    // Randomly position play scenes on either side
+    interaction.position = Math.random() > 0.5 ? 'left' : 'right';
   }
   // Analyze for exploring interactions
   else if (desc.includes('explor') || desc.includes('discover') || desc.includes('walk') || desc.includes('adventure')) {
     interaction.type = 'exploring';
     interaction.proximity = 'medium';
     interaction.facing = 'same-direction';
+    interaction.arrangement = 'staggered';
+    // Position exploring scenes based on context
+    interaction.position = desc.includes('left') ? 'left' : 
+                         desc.includes('right') ? 'right' : 'center';
   }
   // Analyze for talking/social interactions
   else if (desc.includes('talk') || desc.includes('chat') || desc.includes('discuss') || desc.includes('tell')) {
     interaction.type = 'talking';
     interaction.proximity = 'close';
     interaction.facing = 'towards-each-other';
+    interaction.arrangement = 'side-by-side';
+    // Center talking scenes by default
+    interaction.position = 'center';
   }
   // Analyze for resting interactions
   else if (desc.includes('rest') || desc.includes('sleep') || desc.includes('sit') || desc.includes('relax')) {
     interaction.type = 'resting';
     interaction.proximity = 'close';
     interaction.facing = 'same-direction';
+    interaction.arrangement = 'side-by-side';
+    // Position resting scenes based on context
+    interaction.position = desc.includes('bed') ? 'right' : 'center';
   }
 
   return interaction;
@@ -127,107 +144,115 @@ function calculateCharacterPositions(
   interaction: InteractionType
 ): { maddie: CharacterDimensions; tom?: CharacterDimensions } {
   const bottomPadding = Math.round(bgHeight * 0.05); // 5% padding from bottom
+  const sidePadding = Math.round(bgWidth * 0.1); // 10% padding from sides
   
-  // Base positions for Maddie
+  // Calculate spacing based on interaction proximity
+  const proximitySpacing = {
+    close: Math.round(maddieWidth * 0.3), // 30% of Maddie's width
+    medium: Math.round(maddieWidth * 0.8), // 80% of Maddie's width
+    far: Math.round(maddieWidth * 1.5)     // 150% of Maddie's width
+  };
+
+  const spacing = proximitySpacing[interaction.proximity];
+  
+  // If Tom isn't present, position Maddie based on interaction.position
+  if (!tomWidth || !tomHeight) {
+    const maddieLeft = interaction.position === 'left' ? sidePadding :
+                      interaction.position === 'right' ? bgWidth - maddieWidth - sidePadding :
+                      Math.round((bgWidth - maddieWidth) / 2);
+    
+    return {
+      maddie: {
+        width: maddieWidth,
+        height: maddieHeight,
+        position: {
+          left: maddieLeft,
+          top: bgHeight - maddieHeight - bottomPadding
+        }
+      }
+    };
+  }
+
+  // Calculate total width needed for both characters
+  const totalWidth = maddieWidth + tomWidth + spacing;
+
+  // Base positions that will be adjusted based on interaction
   let maddiePosition: CharacterDimensions = {
     width: maddieWidth,
     height: maddieHeight,
     position: {
-      left: Math.round((bgWidth - maddieWidth) / 2),
+      left: 0,
       top: bgHeight - maddieHeight - bottomPadding
     }
   };
 
-  // If Tom isn't present, return only Maddie's position
-  if (!tomWidth || !tomHeight) {
-    return { maddie: maddiePosition };
-  }
-
-  // Calculate spacing based on interaction proximity
-  const proximitySpacing = {
-    close: 20,
-    medium: 50,
-    far: 100
+  let tomPosition: CharacterDimensions = {
+    width: tomWidth,
+    height: tomHeight,
+    position: {
+      left: 0,
+      top: bgHeight - tomHeight - bottomPadding
+    }
   };
 
-  const spacing = proximitySpacing[interaction.proximity];
-  const totalWidth = maddieWidth + tomWidth + spacing;
+  // Calculate positions based on interaction type and arrangement
+  switch (interaction.arrangement) {
+    case 'diagonal':
+      // Create diagonal arrangement with one character slightly behind the other
+      const diagonalOffset = Math.round(maddieHeight * 0.2); // 20% of Maddie's height
+      if (interaction.position === 'left') {
+        maddiePosition.position.left = sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+        tomPosition.position.top += diagonalOffset;
+      } else if (interaction.position === 'right') {
+        maddiePosition.position.left = bgWidth - totalWidth - sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+        tomPosition.position.top += diagonalOffset;
+      } else {
+        maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+        tomPosition.position.top += diagonalOffset;
+      }
+      break;
 
-  // Adjust positions based on interaction type
-  switch (interaction.type) {
-    case 'playing':
-      // Position characters closer together and facing each other
-      maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
-      const tomPosition: CharacterDimensions = {
-        width: tomWidth,
-        height: tomHeight,
-        position: {
-          left: maddiePosition.position.left + maddieWidth + spacing,
-          top: bgHeight - tomHeight - bottomPadding
-        }
-      };
-      return { maddie: maddiePosition, tom: tomPosition };
+    case 'staggered':
+      // Create depth by staggering characters with different scales
+      const depthScale = 0.9; // Scale for character in back
+      if (interaction.position === 'left') {
+        maddiePosition.position.left = sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + Math.round(maddieWidth * 0.7);
+        tomPosition.width = Math.round(tomWidth * depthScale);
+        tomPosition.height = Math.round(tomHeight * depthScale);
+      } else if (interaction.position === 'right') {
+        maddiePosition.position.left = bgWidth - totalWidth - sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + Math.round(maddieWidth * 0.7);
+        tomPosition.width = Math.round(tomWidth * depthScale);
+        tomPosition.height = Math.round(tomHeight * depthScale);
+      } else {
+        maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
+        tomPosition.position.left = maddiePosition.position.left + Math.round(maddieWidth * 0.7);
+        tomPosition.width = Math.round(tomWidth * depthScale);
+        tomPosition.height = Math.round(tomHeight * depthScale);
+      }
+      break;
 
-    case 'exploring':
-      // Position characters side by side, looking in same direction
-      maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
-      return {
-        maddie: maddiePosition,
-        tom: {
-          width: tomWidth,
-          height: tomHeight,
-          position: {
-            left: maddiePosition.position.left + maddieWidth + spacing,
-            top: bgHeight - tomHeight - bottomPadding
-          }
-        }
-      };
-
-    case 'talking':
-      // Position characters close and angled towards each other
-      maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
-      return {
-        maddie: maddiePosition,
-        tom: {
-          width: tomWidth,
-          height: tomHeight,
-          position: {
-            left: maddiePosition.position.left + maddieWidth + spacing,
-            top: bgHeight - tomHeight - bottomPadding
-          }
-        }
-      };
-
-    case 'resting':
-      // Position characters close together, possibly sitting
-      maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
-      return {
-        maddie: maddiePosition,
-        tom: {
-          width: tomWidth,
-          height: tomHeight,
-          position: {
-            left: maddiePosition.position.left + maddieWidth + spacing,
-            top: bgHeight - tomHeight - bottomPadding
-          }
-        }
-      };
-
+    case 'side-by-side':
     default:
-      // Default positioning for any other interaction type
-      maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
-      return {
-        maddie: maddiePosition,
-        tom: {
-          width: tomWidth,
-          height: tomHeight,
-          position: {
-            left: maddiePosition.position.left + maddieWidth + spacing,
-            top: bgHeight - tomHeight - bottomPadding
-          }
-        }
-      };
+      // Standard side-by-side positioning
+      if (interaction.position === 'left') {
+        maddiePosition.position.left = sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+      } else if (interaction.position === 'right') {
+        maddiePosition.position.left = bgWidth - totalWidth - sidePadding;
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+      } else {
+        maddiePosition.position.left = Math.round((bgWidth - totalWidth) / 2);
+        tomPosition.position.left = maddiePosition.position.left + maddieWidth + spacing;
+      }
+      break;
   }
+
+  return { maddie: maddiePosition, tom: tomPosition };
 }
 
 export async function POST(request: Request) {
