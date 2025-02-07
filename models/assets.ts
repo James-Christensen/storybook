@@ -21,6 +21,13 @@ export type Background = {
   description: string;
   settings: string[];
   timeOfDay: string[];
+  subtypes: {
+    [key: string]: {
+      name: string;
+      description: string;
+      keywords: string[];
+    };
+  };
   variations: {
     v1?: string[];
     v2?: {
@@ -148,7 +155,7 @@ export const CHARACTER_POSES: CharacterPose[] = [
   }
 ];
 
-// Initial background set
+// Update BACKGROUNDS array with comprehensive background information
 export const BACKGROUNDS: Background[] = [
   {
     id: 'forest',
@@ -156,6 +163,23 @@ export const BACKGROUNDS: Background[] = [
     description: 'A magical forest with tall trees',
     settings: ['forest', 'outdoor', 'nature', 'woods', 'trees'],
     timeOfDay: ['day'],
+    subtypes: {
+      magical_clearing: {
+        name: 'Magical Clearing',
+        description: 'A mystical clearing in the forest',
+        keywords: ['magical', 'clearing', 'mystical', 'enchanted', 'glow', 'fairy']
+      },
+      dense_path: {
+        name: 'Dense Woodland Path',
+        description: 'A winding path through dense trees',
+        keywords: ['path', 'trail', 'dense', 'winding', 'walking', 'exploring']
+      },
+      meadow_edge: {
+        name: 'Forest Meadow Edge',
+        description: 'Where forest meets meadow',
+        keywords: ['meadow', 'edge', 'open', 'flowers', 'grass', 'sunny']
+      }
+    },
     variations: {
       v1: assetMapping.backgrounds.forest.v1,
       v2: {
@@ -169,8 +193,25 @@ export const BACKGROUNDS: Background[] = [
     id: 'park',
     name: 'Park',
     description: 'A fun park with playground equipment',
-    settings: ['park', 'outdoor', 'playground', 'garden'],
+    settings: ['park', 'outdoor', 'playground', 'garden', 'recreation'],
     timeOfDay: ['day'],
+    subtypes: {
+      playground: {
+        name: 'Playground Area',
+        description: 'A fun playground with equipment',
+        keywords: ['playground', 'swing', 'slide', 'play', 'fun', 'equipment']
+      },
+      walking_path: {
+        name: 'Park Walking Path',
+        description: 'A peaceful walking path',
+        keywords: ['path', 'walking', 'stroll', 'peaceful', 'bench']
+      },
+      open_area: {
+        name: 'Open Park Area',
+        description: 'An open area with scattered trees',
+        keywords: ['open', 'grass', 'trees', 'picnic', 'spacious']
+      }
+    },
     variations: {
       v1: assetMapping.backgrounds.park.v1,
       v2: {
@@ -184,8 +225,25 @@ export const BACKGROUNDS: Background[] = [
     id: 'home',
     name: 'Home',
     description: 'A cozy home environment',
-    settings: ['home', 'indoor', 'house', 'bedroom', 'living room', 'backyard'],
+    settings: ['home', 'indoor', 'house', 'cozy', 'inside'],
     timeOfDay: ['day', 'night'],
+    subtypes: {
+      bedroom: {
+        name: 'Bedroom',
+        description: 'A cozy bedroom setting',
+        keywords: ['bedroom', 'bed', 'sleeping', 'rest', 'stuffed animals', 'toys', 'fairy lights']
+      },
+      living_room: {
+        name: 'Living Room',
+        description: 'A comfortable living room',
+        keywords: ['living room', 'couch', 'sofa', 'tv', 'fireplace', 'comfortable']
+      },
+      backyard: {
+        name: 'Backyard Garden',
+        description: 'A pleasant backyard garden',
+        keywords: ['backyard', 'garden', 'patio', 'yard', 'flowers', 'outdoor']
+      }
+    },
     variations: {
       v1: assetMapping.backgrounds.home.v1,
       v2: {
@@ -201,6 +259,23 @@ export const BACKGROUNDS: Background[] = [
     description: 'A beautiful beach setting',
     settings: ['beach', 'outdoor', 'ocean', 'sea', 'shore', 'coast'],
     timeOfDay: ['day', 'sunset'],
+    subtypes: {
+      sandy: {
+        name: 'Sandy Beach',
+        description: 'A beautiful sandy beach',
+        keywords: ['sand', 'waves', 'sunny', 'beach', 'shells', 'ocean']
+      },
+      rocky_shore: {
+        name: 'Rocky Shore',
+        description: 'A dramatic rocky shoreline with lighthouse',
+        keywords: ['rocks', 'lighthouse', 'cliffs', 'waves', 'shore', 'dramatic']
+      },
+      sunset: {
+        name: 'Beach Sunset',
+        description: 'A peaceful beach at sunset',
+        keywords: ['sunset', 'dusk', 'evening', 'peaceful', 'golden', 'orange']
+      }
+    },
     variations: {
       v1: assetMapping.backgrounds.beach.v1,
       v2: {
@@ -222,12 +297,25 @@ interface PoseMatchResult {
   };
 }
 
+// Add interface for subtype matching
+interface SubtypeMatch {
+  subtype: string;
+  score: number;
+  matches: string[];
+}
+
+// Update BackgroundMatchResult to include subtype information
 interface BackgroundMatchResult {
   background: Background;
   score: number;
   matches: {
     settings: string[];
     context: string[];
+  };
+  selectedSubtype?: {
+    name: string;
+    score: number;
+    matches: string[];
   };
 }
 
@@ -297,7 +385,7 @@ export function findBestPose(description: string, character: 'maddie' | 'tom' = 
   };
 }
 
-// Update findBestBackground to handle room-specific matching
+// Update findBestBackground to include subtype selection
 export function findBestBackground(description: string): BackgroundMatchResult {
   const desc = description.toLowerCase();
   console.log('\n=== Background Matching Process ===');
@@ -318,74 +406,72 @@ export function findBestBackground(description: string): BackgroundMatchResult {
         matches.settings.push(setting);
       }
     });
-    
-    // Add contextual scoring with room-specific matches
-    const contextualMatches = [
-      { 
-        setting: 'home',
-        rooms: {
-          bedroom: ['bedroom', 'bed', 'sleeping', 'pillow', 'stuffed animals', 'fairy lights'],
-          living_room: ['living room', 'couch', 'sofa', 'tv', 'fireplace'],
-          backyard: ['backyard', 'garden', 'patio', 'yard']
-        }
-      },
-      {
-        setting: 'park',
-        features: ['playground', 'swing', 'slide', 'bench', 'path', 'walking path']
-      },
-      {
-        setting: 'beach',
-        features: ['sand', 'wave', 'ocean', 'shore', 'seashell', 'lighthouse']
-      },
-      {
-        setting: 'forest',
-        features: ['tree', 'nature', 'woods', 'woodland', 'clearing', 'path']
-      }
-    ];
 
-    // Check for room-specific matches
-    contextualMatches.forEach(context => {
-      if (bg.id === context.setting) {
-        if (context.rooms) {
-          // For home backgrounds, check room-specific matches
-          Object.entries(context.rooms).forEach(([room, terms]) => {
-            terms.forEach(term => {
-              if (desc.includes(term.toLowerCase())) {
-                score += 3;
-                matches.context.push(term);
-              }
-            });
-          });
-        } else if (context.features) {
-          // For other backgrounds, check feature matches
-          context.features.forEach(feature => {
-            if (desc.includes(feature.toLowerCase())) {
-              score += 3;
-              matches.context.push(feature);
-            }
-          });
+    // Score each subtype
+    const subtypeMatches = Object.entries(bg.subtypes).map(([subtype, info]): SubtypeMatch => {
+      let subtypeScore = 0;
+      const subtypeMatches: string[] = [];
+
+      info.keywords.forEach(keyword => {
+        if (desc.includes(keyword.toLowerCase())) {
+          subtypeScore += 3;
+          subtypeMatches.push(keyword);
         }
-      }
+      });
+
+      return {
+        subtype,
+        score: subtypeScore,
+        matches: subtypeMatches
+      };
     });
+
+    // Find best matching subtype
+    const bestSubtype = subtypeMatches.reduce((best, current) => 
+      current.score > best.score ? current : best
+    , { subtype: Object.keys(bg.subtypes)[0], score: 0, matches: [] });
+
+    // Add subtype score to total
+    score += bestSubtype.score;
 
     console.log(`\nScoring background: ${bg.name}`);
     console.log('- Matching settings:', matches.settings.length ? matches.settings.join(', ') : 'none');
-    console.log('- Contextual matches:', matches.context.length ? matches.context.join(', ') : 'none');
+    if (bestSubtype.score > 0) {
+      console.log(`- Best matching subtype: ${bg.subtypes[bestSubtype.subtype].name}`);
+      console.log('- Subtype matches:', bestSubtype.matches.join(', '));
+    }
     console.log('- Total score:', score);
     
-    return { background: bg, score, matches };
+    return { 
+      background: bg, 
+      score, 
+      matches,
+      selectedSubtype: bestSubtype.score > 0 ? {
+        name: bestSubtype.subtype,
+        score: bestSubtype.score,
+        matches: bestSubtype.matches
+      } : undefined
+    };
   });
   
   // Return the background with the highest score
   const bestMatch = scores.reduce((best, current) => 
     current.score > best.score ? current : best
-  , { background: BACKGROUNDS[0], score: -1, matches: { settings: [], context: [] } });
+  , { 
+    background: BACKGROUNDS[0], 
+    score: -1, 
+    matches: { settings: [], context: [] },
+    selectedSubtype: undefined
+  } as BackgroundMatchResult);
   
   console.log('\n=== Selected Background ===');
   console.log('Name:', bestMatch.background.name);
   console.log('Score:', bestMatch.score);
   console.log('Matched settings:', bestMatch.matches.settings.join(', ') || 'none');
-  console.log('Contextual matches:', bestMatch.matches.context.join(', ') || 'none');
+  if (bestMatch.selectedSubtype) {
+    console.log('Selected subtype:', bestMatch.background.subtypes[bestMatch.selectedSubtype.name].name);
+    console.log('Subtype matches:', bestMatch.selectedSubtype.matches.join(', '));
+  }
   
   return bestMatch;
 } 
