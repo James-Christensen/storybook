@@ -145,33 +145,40 @@ export async function POST(request: Request) {
         throw new Error('Invalid Maddie pose image metadata');
       }
 
-      // Calculate sizes and positions
-      const targetHeight = Math.round(bgMetadata.height * 0.7);
-      const maddieScale = targetHeight / maddieMetadata.height;
+      // Calculate Maddie's size - she should be 70% of background height
+      const maddieTargetHeight = Math.round(bgMetadata.height * 0.7);
+      const maddieScale = maddieTargetHeight / maddieMetadata.height;
       const maddieWidth = Math.round(maddieMetadata.width * maddieScale);
 
       // If Tom is present, load and process his image
-      let tomImage, tomWidth;
+      let tomImage, tomWidth, tomHeight, tomScale;
       if (tomPosePath) {
         tomImage = sharp(tomPosePath);
         const tomMetadata = await tomImage.metadata();
         if (!tomMetadata.width || !tomMetadata.height) {
           throw new Error('Invalid Tom pose image metadata');
         }
-        const tomScale = (targetHeight * 0.6) / tomMetadata.height; // Tom is slightly smaller
+
+        // Tom should be about 50% of Maddie's height
+        tomHeight = Math.round(maddieTargetHeight * 0.5);
+        tomScale = tomHeight / tomMetadata.height;
         tomWidth = Math.round(tomMetadata.width * tomScale);
       }
 
-      // Calculate positions
-      const totalWidth = tomPosePath ? (maddieWidth + tomWidth! + 50) : maddieWidth; // 50px gap between characters
+      // Calculate horizontal positions
+      const totalWidth = tomPosePath ? (maddieWidth + tomWidth! + 30) : maddieWidth; // 30px gap between characters
       const startX = Math.round((bgMetadata.width - totalWidth) / 2);
       const maddieLeft = tomPosePath ? startX : Math.round((bgMetadata.width - maddieWidth) / 2);
-      const tomLeft = tomPosePath ? (maddieLeft + maddieWidth + 50) : 0;
-      const verticalPosition = Math.round(bgMetadata.height - targetHeight - (bgMetadata.height * 0.1));
+      const tomLeft = tomPosePath ? (maddieLeft + maddieWidth + 30) : 0;
+
+      // Calculate vertical positions - anchor to bottom with padding
+      const bottomPadding = Math.round(bgMetadata.height * 0.05); // 5% padding from bottom
+      const maddieTop = bgMetadata.height - maddieTargetHeight - bottomPadding;
+      const tomTop = bgMetadata.height - tomHeight! - bottomPadding;
 
       // Resize Maddie's image
       const resizedMaddie = await maddieImage
-        .resize(maddieWidth, targetHeight, {
+        .resize(maddieWidth, maddieTargetHeight, {
           fit: 'contain',
           background: { r: 0, g: 0, b: 0, alpha: 0 }
         })
@@ -180,14 +187,14 @@ export async function POST(request: Request) {
       // Prepare composite array
       const compositeArray = [{
         input: resizedMaddie,
-        top: verticalPosition,
+        top: maddieTop,
         left: maddieLeft
       }];
 
       // If Tom is present, add him to the composition
       if (tomPosePath && tomImage) {
         const resizedTom = await tomImage
-          .resize(tomWidth, Math.round(targetHeight * 0.6), {
+          .resize(tomWidth, tomHeight, {
             fit: 'contain',
             background: { r: 0, g: 0, b: 0, alpha: 0 }
           })
@@ -195,7 +202,7 @@ export async function POST(request: Request) {
 
         compositeArray.push({
           input: resizedTom,
-          top: verticalPosition + Math.round(targetHeight * 0.1), // Position Tom slightly lower
+          top: tomTop,
           left: tomLeft
         });
       }
@@ -246,8 +253,8 @@ export async function POST(request: Request) {
           characters: {
             maddie: {
               width: maddieWidth,
-              height: targetHeight,
-              position: { left: maddieLeft, top: verticalPosition }
+              height: maddieTargetHeight,
+              position: { left: maddieLeft, top: maddieTop }
             }
           }
         }
@@ -257,8 +264,8 @@ export async function POST(request: Request) {
       if (tomPoseMatch) {
         metadata.dimensions.characters.tom = {
           width: tomWidth!,
-          height: Math.round(targetHeight * 0.6),
-          position: { left: tomLeft, top: verticalPosition + Math.round(targetHeight * 0.1) }
+          height: tomHeight!,
+          position: { left: tomLeft, top: tomTop }
         };
         metadata.tom = {
           selected: {
