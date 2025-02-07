@@ -21,6 +21,57 @@ interface BackgroundMatch {
   contextualMatches: string[];
 }
 
+interface CharacterMetadata {
+  selected: {
+    id: string;
+    name: string;
+    description: string;
+    emotions: string[];
+    actions: string[];
+  };
+  matchDetails: {
+    score: number;
+    matchedEmotions: string[];
+    matchedActions: string[];
+  };
+}
+
+interface CharacterDimensions {
+  width: number;
+  height: number;
+  position: {
+    left: number;
+    top: number;
+  };
+}
+
+interface ImageMetadata {
+  maddie: CharacterMetadata;
+  tom?: CharacterMetadata;
+  background: {
+    selected: {
+      id: string;
+      name: string;
+      description: string;
+      settings: string[];
+      timeOfDay: string[];
+    };
+    matchDetails: {
+      score: number;
+      matchedSettings: string[];
+      contextualMatches: string[];
+    };
+  };
+  dimensions: {
+    width: number;
+    height: number;
+    characters: {
+      maddie: CharacterDimensions;
+      tom?: CharacterDimensions;
+    };
+  };
+}
+
 export async function POST(request: Request) {
   const startTime = Date.now();
   
@@ -29,36 +80,53 @@ export async function POST(request: Request) {
     console.log('\n=== Starting Image Composition ===');
     console.log('Processing scene description:', description);
     
-    // Find the best matching pose and background based on the description
-    const poseMatch = findBestPose(description);
+    // Check if Tom is mentioned in the description
+    const hasTom = description.toLowerCase().includes('tom');
+    
+    // Find the best matching poses and background
+    const maddiePoseMatch = findBestPose(description, 'maddie');
+    const tomPoseMatch = hasTom ? findBestPose(description, 'tom') : null;
     const backgroundMatch = findBestBackground(description);
     
     console.log('\n=== Asset Selection Summary ===');
-    console.log('Selected pose:', {
-      id: poseMatch.pose.id,
-      name: poseMatch.pose.name,
-      description: poseMatch.pose.description,
-      emotions: poseMatch.pose.emotions,
-      actions: poseMatch.pose.actions
+    console.log('Selected Maddie pose:', {
+      id: maddiePoseMatch.pose.id,
+      name: maddiePoseMatch.pose.name,
+      score: maddiePoseMatch.score
     });
+    
+    if (tomPoseMatch) {
+      console.log('Selected Tom pose:', {
+        id: tomPoseMatch.pose.id,
+        name: tomPoseMatch.pose.name,
+        score: tomPoseMatch.score
+      });
+    }
+    
     console.log('Selected background:', {
       id: backgroundMatch.background.id,
       name: backgroundMatch.background.name,
-      description: backgroundMatch.background.description,
-      settings: backgroundMatch.background.settings,
-      timeOfDay: backgroundMatch.background.timeOfDay
+      score: backgroundMatch.score
     });
     
     try {
       // Get the absolute paths for the images
       const workspacePath = process.cwd();
-      const bgPath = path.join(workspacePath, 'public', backgroundMatch.background.imageUrl);
-      const posePath = path.join(workspacePath, 'public', poseMatch.pose.imageUrl);
+      
+      // Select a random background variation from v2 if available, otherwise fallback to v1
+      const bgVariations = backgroundMatch.background.variations.v2?.[Object.keys(backgroundMatch.background.variations.v2)[0]] || 
+                          backgroundMatch.background.variations.v1?.map(path => ({ path })) || [];
+      const selectedBgVariation = bgVariations[Math.floor(Math.random() * bgVariations.length)].path;
+      
+      const bgPath = path.join(workspacePath, 'public', selectedBgVariation);
+      const maddiePosePath = path.join(workspacePath, 'public', maddiePoseMatch.selectedVariation);
+      const tomPosePath = tomPoseMatch ? path.join(workspacePath, 'public', tomPoseMatch.selectedVariation) : null;
 
       console.log('\n=== Image Processing ===');
       console.log('Loading images from:', {
         background: bgPath,
-        pose: posePath
+        maddie: maddiePosePath,
+        tom: tomPosePath
       });
 
       // Load the background image
@@ -69,187 +137,149 @@ export async function POST(request: Request) {
         throw new Error('Invalid background image metadata');
       }
 
-      console.log('Background dimensions:', {
-        width: bgMetadata.width,
-        height: bgMetadata.height,
-        format: bgMetadata.format
-      });
-
-      // Load and process the character pose
-      const poseImage = sharp(posePath);
-      const poseMetadata = await poseImage.metadata();
+      // Load and process Maddie's pose
+      const maddieImage = sharp(maddiePosePath);
+      const maddieMetadata = await maddieImage.metadata();
       
-      if (!poseMetadata.width || !poseMetadata.height) {
-        throw new Error('Invalid pose image metadata');
+      if (!maddieMetadata.width || !maddieMetadata.height) {
+        throw new Error('Invalid Maddie pose image metadata');
       }
 
-      console.log('Original pose dimensions:', {
-        width: poseMetadata.width,
-        height: poseMetadata.height,
-        format: poseMetadata.format
-      });
-
-      // Calculate the target size for the character
-      // Make character height 70% of background height
+      // Calculate sizes and positions
       const targetHeight = Math.round(bgMetadata.height * 0.7);
-      const scale = targetHeight / poseMetadata.height;
-      const targetWidth = Math.round(poseMetadata.width * scale);
+      const maddieScale = targetHeight / maddieMetadata.height;
+      const maddieWidth = Math.round(maddieMetadata.width * maddieScale);
 
-      console.log('Calculated character dimensions:', {
-        targetWidth,
-        targetHeight,
-        scale
-      });
+      // If Tom is present, load and process his image
+      let tomImage, tomWidth;
+      if (tomPosePath) {
+        tomImage = sharp(tomPosePath);
+        const tomMetadata = await tomImage.metadata();
+        if (!tomMetadata.width || !tomMetadata.height) {
+          throw new Error('Invalid Tom pose image metadata');
+        }
+        const tomScale = (targetHeight * 0.6) / tomMetadata.height; // Tom is slightly smaller
+        tomWidth = Math.round(tomMetadata.width * tomScale);
+      }
 
-      // Resize the character pose
-      const resizedPose = await poseImage
-        .resize(targetWidth, targetHeight, {
+      // Calculate positions
+      const totalWidth = tomPosePath ? (maddieWidth + tomWidth! + 50) : maddieWidth; // 50px gap between characters
+      const startX = Math.round((bgMetadata.width - totalWidth) / 2);
+      const maddieLeft = tomPosePath ? startX : Math.round((bgMetadata.width - maddieWidth) / 2);
+      const tomLeft = tomPosePath ? (maddieLeft + maddieWidth + 50) : 0;
+      const verticalPosition = Math.round(bgMetadata.height - targetHeight - (bgMetadata.height * 0.1));
+
+      // Resize Maddie's image
+      const resizedMaddie = await maddieImage
+        .resize(maddieWidth, targetHeight, {
           fit: 'contain',
           background: { r: 0, g: 0, b: 0, alpha: 0 }
         })
         .toBuffer();
 
-      // Calculate position for the character
-      // Place character in the center-bottom of the scene
-      const left = Math.round((bgMetadata.width - targetWidth) / 2);
-      const top = Math.round(bgMetadata.height - targetHeight - (bgMetadata.height * 0.1)); // 10% padding from bottom
+      // Prepare composite array
+      const compositeArray = [{
+        input: resizedMaddie,
+        top: verticalPosition,
+        left: maddieLeft
+      }];
 
-      console.log('Character placement:', {
-        left,
-        top,
-        bottomPadding: Math.round(bgMetadata.height * 0.1)
-      });
+      // If Tom is present, add him to the composition
+      if (tomPosePath && tomImage) {
+        const resizedTom = await tomImage
+          .resize(tomWidth, Math.round(targetHeight * 0.6), {
+            fit: 'contain',
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          })
+          .toBuffer();
 
-      // Composite the images with high quality settings
-      console.log('\n=== Compositing Images ===');
+        compositeArray.push({
+          input: resizedTom,
+          top: verticalPosition + Math.round(targetHeight * 0.1), // Position Tom slightly lower
+          left: tomLeft
+        });
+      }
+
+      // Composite the images
       const result = await bgImage
-        .composite([
-          {
-            input: resizedPose,
-            top: top,
-            left: left
-          }
-        ])
+        .composite(compositeArray)
         .jpeg({ quality: 90 })
         .toBuffer();
       
       // Convert to base64 for response
       const base64Image = result.toString('base64');
       console.log('Successfully composed image');
-      
-      // Get all considered poses and backgrounds with their scores
-      const allPoseMatches = CHARACTER_POSES.map((pose: CharacterPose) => {
-        const matches = {
-          emotions: [] as string[],
-          actions: [] as string[]
+
+      // Prepare response metadata
+      const metadata: ImageMetadata = {
+        maddie: {
+          selected: {
+            id: maddiePoseMatch.pose.id,
+            name: maddiePoseMatch.pose.name,
+            description: maddiePoseMatch.pose.description,
+            emotions: maddiePoseMatch.pose.emotions,
+            actions: maddiePoseMatch.pose.actions
+          },
+          matchDetails: {
+            score: maddiePoseMatch.score,
+            matchedEmotions: maddiePoseMatch.matches.emotions,
+            matchedActions: maddiePoseMatch.matches.actions
+          }
+        },
+        background: {
+          selected: {
+            id: backgroundMatch.background.id,
+            name: backgroundMatch.background.name,
+            description: backgroundMatch.background.description,
+            settings: backgroundMatch.background.settings,
+            timeOfDay: backgroundMatch.background.timeOfDay
+          },
+          matchDetails: {
+            score: backgroundMatch.score,
+            matchedSettings: backgroundMatch.matches.settings,
+            contextualMatches: backgroundMatch.matches.context
+          }
+        },
+        dimensions: {
+          width: bgMetadata.width,
+          height: bgMetadata.height,
+          characters: {
+            maddie: {
+              width: maddieWidth,
+              height: targetHeight,
+              position: { left: maddieLeft, top: verticalPosition }
+            }
+          }
+        }
+      };
+
+      // Add Tom's metadata if present
+      if (tomPoseMatch) {
+        metadata.dimensions.characters.tom = {
+          width: tomWidth!,
+          height: Math.round(targetHeight * 0.6),
+          position: { left: tomLeft, top: verticalPosition + Math.round(targetHeight * 0.1) }
         };
-        let score = 0;
-        
-        pose.emotions.forEach((emotion: string) => {
-          if (description.toLowerCase().includes(emotion)) {
-            score += 2;
-            matches.emotions.push(emotion);
+        metadata.tom = {
+          selected: {
+            id: tomPoseMatch.pose.id,
+            name: tomPoseMatch.pose.name,
+            description: tomPoseMatch.pose.description,
+            emotions: tomPoseMatch.pose.emotions,
+            actions: tomPoseMatch.pose.actions
+          },
+          matchDetails: {
+            score: tomPoseMatch.score,
+            matchedEmotions: tomPoseMatch.matches.emotions,
+            matchedActions: tomPoseMatch.matches.actions
           }
-        });
-        
-        pose.actions.forEach((action: string) => {
-          if (description.toLowerCase().includes(action)) {
-            score += 2;
-            matches.actions.push(action);
-          }
-        });
-
-        return {
-          id: pose.id,
-          name: pose.name,
-          score,
-          matchedEmotions: matches.emotions,
-          matchedActions: matches.actions
-        } as PoseMatch;
-      });
-
-      const allBackgroundMatches = BACKGROUNDS.map((bg: Background) => {
-        const matches = {
-          settings: [] as string[],
-          context: [] as string[]
         };
-        let score = 0;
-
-        bg.settings.forEach((setting: string) => {
-          if (description.toLowerCase().includes(setting)) {
-            score += 2;
-            matches.settings.push(setting);
-          }
-        });
-
-        // Add contextual scoring
-        const contextualMatches = [
-          { terms: ['sleep', 'waking up', 'bedroom'], setting: 'bedroom' },
-          { terms: ['sand', 'wave', 'ocean', 'beach'], setting: 'beach' },
-          { terms: ['tree', 'nature', 'woods', 'forest'], setting: 'forest' },
-          { terms: ['playground', 'swing', 'slide', 'park'], setting: 'park' }
-        ];
-
-        contextualMatches.forEach(({ terms, setting }) => {
-          if (bg.id === setting && terms.some(term => description.toLowerCase().includes(term))) {
-            score += 3;
-            matches.context.push(...terms.filter(term => description.toLowerCase().includes(term)));
-          }
-        });
-
-        return {
-          id: bg.id,
-          name: bg.name,
-          score,
-          matchedSettings: matches.settings,
-          contextualMatches: matches.context
-        } as BackgroundMatch;
-      });
+      }
 
       return NextResponse.json({
         success: true,
         imageData: `data:image/jpeg;base64,${base64Image}`,
-        metadata: {
-          pose: {
-            selected: {
-              id: poseMatch.pose.id,
-              name: poseMatch.pose.name,
-              description: poseMatch.pose.description,
-              emotions: poseMatch.pose.emotions,
-              actions: poseMatch.pose.actions
-            },
-            matchDetails: {
-              score: poseMatch.score,
-              matchedEmotions: poseMatch.matches.emotions,
-              matchedActions: poseMatch.matches.actions
-            },
-            alternativesConsidered: allPoseMatches
-          },
-          background: {
-            selected: {
-              id: backgroundMatch.background.id,
-              name: backgroundMatch.background.name,
-              description: backgroundMatch.background.description,
-              settings: backgroundMatch.background.settings,
-              timeOfDay: backgroundMatch.background.timeOfDay
-            },
-            matchDetails: {
-              score: backgroundMatch.score,
-              matchedSettings: backgroundMatch.matches.settings,
-              contextualMatches: backgroundMatch.matches.context
-            },
-            alternativesConsidered: allBackgroundMatches
-          },
-          dimensions: {
-            width: bgMetadata.width,
-            height: bgMetadata.height
-          },
-          character: {
-            width: targetWidth,
-            height: targetHeight,
-            position: { left, top }
-          }
-        }
+        metadata
       });
       
     } catch (imageError) {
