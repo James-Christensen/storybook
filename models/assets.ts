@@ -1,99 +1,91 @@
+export type AssetVariation = {
+  path: string;
+  tags?: string[];
+};
+
 export type CharacterPose = {
   id: string;
   name: string;
   description: string;
-  imageUrl: string;
   emotions: string[];
   actions: string[];
+  variations: {
+    v1?: string;
+    v2: AssetVariation[];
+  };
 };
 
 export type Background = {
   id: string;
   name: string;
   description: string;
-  imageUrl: string;
   settings: string[];
   timeOfDay: string[];
+  variations: {
+    v1?: string[];
+    v2?: {
+      [subtype: string]: AssetVariation[];
+    };
+  };
 };
 
-// Initial pose set for MVP
+// Load the asset mapping
+import assetMapping from '../public/assets/asset-mapping.json';
+
+// Convert asset mapping to CHARACTER_POSES format
 export const CHARACTER_POSES: CharacterPose[] = [
+  // Maddie's poses
   {
     id: 'neutral',
     name: 'Standing',
     description: 'A neutral, friendly standing pose',
-    imageUrl: '/assets/characters/maddie/poses/neutral.png',
     emotions: ['neutral', 'calm', 'friendly'],
-    actions: ['standing', 'introducing', 'observing']
-  },
-  {
-    id: 'happy',
-    name: 'Happy',
-    description: 'An excited, happy pose with raised arms',
-    imageUrl: '/assets/characters/maddie/poses/happy.png',
-    emotions: ['happy', 'excited', 'joyful'],
-    actions: ['celebrating', 'playing', 'laughing']
+    actions: ['standing', 'introducing', 'observing'],
+    variations: {
+      v2: assetMapping.poses.maddie.neutral.v2.map(path => ({ path }))
+    }
   },
   {
     id: 'thinking',
     name: 'Thinking',
-    description: 'A curious, thoughtful pose with hand on chin',
-    imageUrl: '/assets/characters/maddie/poses/thinking.png',
+    description: 'A curious, thoughtful pose',
     emotions: ['curious', 'thoughtful', 'interested'],
-    actions: ['thinking', 'wondering', 'discovering']
-  },
-  {
-    id: 'celebrating',
-    name: 'Celebrating',
-    description: 'A jumping, celebrating pose',
-    imageUrl: '/assets/characters/maddie/poses/celebrating.png',
-    emotions: ['triumphant', 'excited', 'proud'],
-    actions: ['jumping', 'celebrating', 'succeeding']
+    actions: ['thinking', 'wondering', 'discovering'],
+    variations: {
+      v2: assetMapping.poses.maddie.thinking.v2.map(path => ({ path }))
+    }
   },
   {
     id: 'running',
     name: 'Running',
     description: 'An active, adventurous running pose',
-    imageUrl: '/assets/characters/maddie/poses/running.png',
     emotions: ['energetic', 'adventurous', 'determined'],
-    actions: ['running', 'chasing', 'exploring']
+    actions: ['running', 'chasing', 'exploring'],
+    variations: {
+      v2: assetMapping.poses.maddie.running.v2.map(path => ({ path }))
+    }
   }
+  // We'll add more poses after confirming this structure works
 ];
 
-// Initial background set for MVP
+// Initial background set
 export const BACKGROUNDS: Background[] = [
-  {
-    id: 'bedroom',
-    name: 'Bedroom',
-    description: 'A cozy bedroom with toys and books',
-    imageUrl: '/assets/backgrounds/bedroom.png',
-    settings: ['home', 'indoor', 'bedroom'],
-    timeOfDay: ['day', 'night']
-  },
-  {
-    id: 'park',
-    name: 'Park',
-    description: 'A sunny park with playground and trees',
-    imageUrl: '/assets/backgrounds/park.png',
-    settings: ['park', 'outdoor', 'playground'],
-    timeOfDay: ['day']
-  },
   {
     id: 'forest',
     name: 'Forest',
     description: 'A magical forest with tall trees',
-    imageUrl: '/assets/backgrounds/forest.png',
     settings: ['forest', 'outdoor', 'nature'],
-    timeOfDay: ['day', 'night']
-  },
-  {
-    id: 'beach',
-    name: 'Beach',
-    description: 'A beautiful beach with waves and sand',
-    imageUrl: '/assets/backgrounds/beach.png',
-    settings: ['beach', 'outdoor', 'ocean'],
-    timeOfDay: ['day']
+    timeOfDay: ['day'],
+    variations: {
+      v1: assetMapping.backgrounds.forest.v1,
+      v2: {
+        magical_clearing: assetMapping.backgrounds.forest.v2.magical_clearing.map(path => ({ path })),
+        dense_path: assetMapping.backgrounds.forest.v2.dense_path.map(path => ({ path })),
+        meadow_edge: assetMapping.backgrounds.forest.v2.meadow_edge.map(path => ({ path }))
+      }
+    }
   }
+  // We'll add more backgrounds after confirming this structure works
 ];
 
 // Add these interfaces at the top of the file
