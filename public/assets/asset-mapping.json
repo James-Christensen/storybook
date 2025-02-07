@@ -2,7 +2,6 @@
   "poses": {
     "maddie": {
       "neutral": {
-        "v1": "/assets/characters/maddie/v1/neutral.png",
         "v2": [
           "/assets/characters/maddie/v2/standing/Maddie_standing_1.png",
           "/assets/characters/maddie/v2/standing/Maddie_standing_2.png",
@@ -10,7 +9,6 @@
         ]
       },
       "thinking": {
-        "v1": "/assets/characters/maddie/v1/thinking.png",
         "v2": [
           "/assets/characters/maddie/v2/thinking/Maddie_thinking_1.png",
           "/assets/characters/maddie/v2/thinking/Maddie_thinking_2.png",
@@ -19,22 +17,32 @@
         ]
       },
       "running": {
-        "v1": "/assets/characters/maddie/v1/running.png",
         "v2": [
           "/assets/characters/maddie/v2/running/Maddie_running_1.png",
           "/assets/characters/maddie/v2/running/Maddie_running_2.png",
           "/assets/characters/maddie/v2/running/Maddie_running_3.png"
         ]
       },
+      "sitting": {
+        "v2": [
+          "/assets/characters/maddie/v2/sitting/Maddie_sitting_1.png"
+        ]
+      },
+      "walking": {
+        "v2": [
+          "/assets/characters/maddie/v2/walking/Maddie_walking_1.png",
+          "/assets/characters/maddie/v2/walking/Maddie_walking_2.png",
+          "/assets/characters/maddie/v2/walking/Maddie_walking_3.png",
+          "/assets/characters/maddie/v2/walking/Maddie_walking_4.png"
+        ]
+      },
       "celebrating": {
-        "v1": "/assets/characters/maddie/v1/celebrating.png",
         "v2": [
           "/assets/characters/maddie/v2/celebrating/Maddie_standing_4.png",
           "/assets/characters/maddie/v2/celebrating/Maddie_standing_5.png"
         ]
       },
       "interaction": {
-        "v1": "/assets/characters/maddie/v1/happy.png",
         "v2": [
           "/assets/characters/maddie/v2/interaction/Maddie_waving_1.png",
           "/assets/characters/maddie/v2/interaction/Maddie_waving_2.png",
@@ -46,9 +54,9 @@
     "tom": {
       "standing": {
         "v2": [
-          "/assets/characters/Tom/v2/standing/tom_standing_alert_1.png",
-          "/assets/characters/Tom/v2/standing/tom_standing_alert_2.png",
-          "/assets/characters/Tom/v2/standing/tom_standing_alert_3.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_attentive_1.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_attentive_2.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_attentive_3.png",
           "/assets/characters/Tom/v2/standing/tom_standing_friendly_1.png",
           "/assets/characters/Tom/v2/standing/tom_standing_friendly_2.png",
           "/assets/characters/Tom/v2/standing/tom_standing_friendly_3.png"
@@ -63,9 +71,9 @@
       },
       "sitting": {
         "v2": [
-          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_1.png",
-          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_2.png",
-          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_3.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_sit_1.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_sit_2.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_sit_3.png",
           "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_1.png",
           "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_2.png",
           "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_3.png"
@@ -116,7 +124,7 @@
         ],
         "walking_path": [
           "/assets/backgrounds/v2/park/walking_path/walking_path_1.png",
-          "/assets/backgrounds/v2/park/walking_path/walking_path_2.png",
+          "/assets/backgrounds/v2/park/walking_path/walking_path2.png",
           "/assets/backgrounds/v2/park/walking_path/walking_path_3.png"
         ],
         "open_area": [
