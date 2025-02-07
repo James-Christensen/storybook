@@ -1,0 +1,175 @@
+{
+  "poses": {
+    "maddie": {
+      "neutral": {
+        "v1": "/assets/characters/maddie/v1/neutral.png",
+        "v2": [
+          "/assets/characters/maddie/v2/standing/Maddie_standing_1.png",
+          "/assets/characters/maddie/v2/standing/Maddie_standing_2.png",
+          "/assets/characters/maddie/v2/standing/Maddie_standing_3.png"
+        ]
+      },
+      "thinking": {
+        "v1": "/assets/characters/maddie/v1/thinking.png",
+        "v2": [
+          "/assets/characters/maddie/v2/thinking/Maddie_thinking_1.png",
+          "/assets/characters/maddie/v2/thinking/Maddie_thinking_2.png",
+          "/assets/characters/maddie/v2/thinking/Maddie_pointing_1.png",
+          "/assets/characters/maddie/v2/thinking/Maddie_pointing_2.png"
+        ]
+      },
+      "running": {
+        "v1": "/assets/characters/maddie/v1/running.png",
+        "v2": [
+          "/assets/characters/maddie/v2/running/Maddie_running_1.png",
+          "/assets/characters/maddie/v2/running/Maddie_running_2.png",
+          "/assets/characters/maddie/v2/running/Maddie_running_3.png"
+        ]
+      },
+      "celebrating": {
+        "v1": "/assets/characters/maddie/v1/celebrating.png",
+        "v2": [
+          "/assets/characters/maddie/v2/celebrating/Maddie_standing_4.png",
+          "/assets/characters/maddie/v2/celebrating/Maddie_standing_5.png"
+        ]
+      },
+      "interaction": {
+        "v1": "/assets/characters/maddie/v1/happy.png",
+        "v2": [
+          "/assets/characters/maddie/v2/interaction/Maddie_waving_1.png",
+          "/assets/characters/maddie/v2/interaction/Maddie_waving_2.png",
+          "/assets/characters/maddie/v2/interaction/Maddie_waving_3.png",
+          "/assets/characters/maddie/v2/interaction/Maddie_waving_4.png"
+        ]
+      }
+    },
+    "tom": {
+      "standing": {
+        "v2": [
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_1.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_2.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_alert_3.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_friendly_1.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_friendly_2.png",
+          "/assets/characters/Tom/v2/standing/tom_standing_friendly_3.png"
+        ]
+      },
+      "running": {
+        "v2": [
+          "/assets/characters/Tom/v2/running/tom_running_1.png",
+          "/assets/characters/Tom/v2/running/tom_playful_1.png",
+          "/assets/characters/Tom/v2/running/tom_walking_1.png"
+        ]
+      },
+      "sitting": {
+        "v2": [
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_1.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_2.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_attentive_3.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_1.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_2.png",
+          "/assets/characters/Tom/v2/sitting/tom_sitting_relaxed_3.png"
+        ]
+      },
+      "interaction": {
+        "v2": [
+          "/assets/characters/Tom/v2/interaction/tom_looking_up_1.png",
+          "/assets/characters/Tom/v2/interaction/tom_looking_up_2.png"
+        ]
+      }
+    }
+  },
+  "backgrounds": {
+    "forest": {
+      "v1": [
+        "/assets/backgrounds/v1/forest.png",
+        "/assets/backgrounds/v1/forest1.png"
+      ],
+      "v2": {
+        "magical_clearing": [
+          "/assets/backgrounds/v2/forest/magical_clearing/magical_forest_clearing_1.png",
+          "/assets/backgrounds/v2/forest/magical_clearing/magical_forest_clearing_2.png",
+          "/assets/backgrounds/v2/forest/magical_clearing/magical_forest_clearing_3.png"
+        ],
+        "dense_path": [
+          "/assets/backgrounds/v2/forest/dense_path/dense_woodland_path_1.png",
+          "/assets/backgrounds/v2/forest/dense_path/dense_woodland_path_2.png",
+          "/assets/backgrounds/v2/forest/dense_path/dense_woodland_path_3.png"
+        ],
+        "meadow_edge": [
+          "/assets/backgrounds/v2/forest/meadow_edge/forest_edge_with_meadow_1.png",
+          "/assets/backgrounds/v2/forest/meadow_edge/forest_edge_with_meadow_2.png",
+          "/assets/backgrounds/v2/forest/meadow_edge/forest_edge_with_meadow_3.png"
+        ]
+      }
+    },
+    "park": {
+      "v1": [
+        "/assets/backgrounds/v1/park.png",
+        "/assets/backgrounds/v1/park1.png"
+      ],
+      "v2": {
+        "playground": [
+          "/assets/backgrounds/v2/park/playground/playground_area_1.png",
+          "/assets/backgrounds/v2/park/playground/playground_area_2.png",
+          "/assets/backgrounds/v2/park/playground/playground_area_3.png"
+        ],
+        "walking_path": [
+          "/assets/backgrounds/v2/park/walking_path/walking_path_1.png",
+          "/assets/backgrounds/v2/park/walking_path/walking_path_2.png",
+          "/assets/backgrounds/v2/park/walking_path/walking_path_3.png"
+        ],
+        "open_area": [
+          "/assets/backgrounds/v2/park/open_area/open_park_with_trees_1.png",
+          "/assets/backgrounds/v2/park/open_area/open_park_with_trees_2.png",
+          "/assets/backgrounds/v2/park/open_area/open_park_with_trees_3.png"
+        ]
+      }
+    },
+    "home": {
+      "v1": [
+        "/assets/backgrounds/v1/bedroom.png",
+        "/assets/backgrounds/v1/bedroom1.png"
+      ],
+      "v2": {
+        "bedroom": [
+          "/assets/backgrounds/v2/home/bedroom/bedroom_1.png",
+          "/assets/backgrounds/v2/home/bedroom/bedroom_2.png"
+        ],
+        "living_room": [
+          "/assets/backgrounds/v2/home/living_room/living_room_1.png",
+          "/assets/backgrounds/v2/home/living_room/living_room_2.png",
+          "/assets/backgrounds/v2/home/living_room/living_room_3.png"
+        ],
+        "backyard": [
+          "/assets/backgrounds/v2/home/backyard/backyard_garden_1.png",
+          "/assets/backgrounds/v2/home/backyard/backyard_garden_2.png",
+          "/assets/backgrounds/v2/home/backyard/backyard_garden_3.png"
+        ]
+      }
+    },
+    "beach": {
+      "v1": [
+        "/assets/backgrounds/v1/beach.png",
+        "/assets/backgrounds/v1/beach1.png"
+      ],
+      "v2": {
+        "sandy": [
+          "/assets/backgrounds/v2/beach/sandy/sandy_beach_1.png",
+          "/assets/backgrounds/v2/beach/sandy/sandy_beach_2.png",
+          "/assets/backgrounds/v2/beach/sandy/sandy_beach_3.png"
+        ],
+        "rocky_shore": [
+          "/assets/backgrounds/v2/beach/rocky_shore/rocky_shore_lighthouse_1.png",
+          "/assets/backgrounds/v2/beach/rocky_shore/rocky_shore_lighthouse_2.png",
+          "/assets/backgrounds/v2/beach/rocky_shore/rocky_shore_lighthouse_3.png"
+        ],
+        "sunset": [
+          "/assets/backgrounds/v2/beach/sunset/beach_sunset_1.png",
+          "/assets/backgrounds/v2/beach/sunset/beach_sunset_2.png",
+          "/assets/backgrounds/v2/beach/sunset/beach_sunset_3.png"
+        ]
+      }
+    }
+  }
+} 
