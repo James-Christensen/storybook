@@ -1,6 +1,12 @@
 export type AssetVariation = {
   path: string;
-  tags?: string[];
+  tags: string[];
+  context: {
+    timeOfDay?: ('morning' | 'day' | 'sunset' | 'night')[];
+    energy: 'low' | 'medium' | 'high';
+    storyBeat: ('introduction' | 'action' | 'climax' | 'resolution')[];
+    interaction?: 'solo' | 'with_tom' | 'with_environment';
+  };
 };
 
 export type CharacterPose = {
@@ -49,7 +55,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['neutral', 'calm', 'friendly'],
     actions: ['standing', 'introducing', 'observing'],
     variations: {
-      v2: assetMapping.poses.maddie.neutral.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.neutral.v2.map(path => ({
+        path,
+        tags: ['neutral', 'standing', 'calm'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['introduction', 'action'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -59,7 +73,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['curious', 'thoughtful', 'interested'],
     actions: ['thinking', 'wondering', 'discovering'],
     variations: {
-      v2: assetMapping.poses.maddie.thinking.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.thinking.v2.map(path => ({
+        path,
+        tags: ['thoughtful', 'curious', 'discovery'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['action', 'climax'],
+          interaction: 'with_environment'
+        }
+      }))
     }
   },
   {
@@ -69,7 +91,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['energetic', 'adventurous', 'determined'],
     actions: ['running', 'chasing', 'exploring'],
     variations: {
-      v2: assetMapping.poses.maddie.running.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.running.v2.map(path => ({
+        path,
+        tags: ['running', 'active', 'adventure'],
+        context: {
+          energy: 'high',
+          storyBeat: ['action', 'climax'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -79,7 +109,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['relaxed', 'attentive', 'calm'],
     actions: ['sitting', 'resting', 'listening'],
     variations: {
-      v2: assetMapping.poses.maddie.sitting.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.sitting.v2.map(path => ({
+        path,
+        tags: ['sitting', 'relaxed', 'calm'],
+        context: {
+          energy: 'low',
+          storyBeat: ['introduction', 'resolution'],
+          interaction: 'with_environment'
+        }
+      }))
     }
   },
   {
@@ -89,7 +127,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['content', 'relaxed', 'happy'],
     actions: ['walking', 'strolling', 'exploring'],
     variations: {
-      v2: assetMapping.poses.maddie.walking.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.walking.v2.map(path => ({
+        path,
+        tags: ['walking', 'exploring', 'casual'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['action'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -99,7 +145,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['happy', 'excited', 'triumphant'],
     actions: ['celebrating', 'cheering', 'jumping'],
     variations: {
-      v2: assetMapping.poses.maddie.celebrating.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.celebrating.v2.map(path => ({
+        path,
+        tags: ['celebrating', 'happy', 'victory'],
+        context: {
+          energy: 'high',
+          storyBeat: ['climax', 'resolution'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -109,7 +163,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['friendly', 'happy', 'caring'],
     actions: ['waving', 'greeting', 'playing'],
     variations: {
-      v2: assetMapping.poses.maddie.interaction.v2.map(path => ({ path }))
+      v2: assetMapping.poses.maddie.interaction.v2.map(path => ({
+        path,
+        tags: ['interaction', 'friendly', 'playing'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['introduction', 'action', 'resolution'],
+          interaction: 'with_tom'
+        }
+      }))
     }
   },
   // Tom's poses
@@ -120,7 +182,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['alert', 'attentive', 'friendly'],
     actions: ['standing', 'watching', 'guarding'],
     variations: {
-      v2: assetMapping.poses.tom.standing.v2.map(path => ({ path }))
+      v2: assetMapping.poses.tom.standing.v2.map(path => ({
+        path,
+        tags: ['standing', 'alert', 'attentive'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['introduction', 'action'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -130,7 +200,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['playful', 'excited', 'energetic'],
     actions: ['running', 'playing', 'chasing'],
     variations: {
-      v2: assetMapping.poses.tom.running.v2.map(path => ({ path }))
+      v2: assetMapping.poses.tom.running.v2.map(path => ({
+        path,
+        tags: ['running', 'playing', 'energetic'],
+        context: {
+          energy: 'high',
+          storyBeat: ['action', 'climax'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -140,7 +218,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['attentive', 'relaxed', 'obedient'],
     actions: ['sitting', 'waiting', 'watching'],
     variations: {
-      v2: assetMapping.poses.tom.sitting.v2.map(path => ({ path }))
+      v2: assetMapping.poses.tom.sitting.v2.map(path => ({
+        path,
+        tags: ['sitting', 'attentive', 'calm'],
+        context: {
+          energy: 'low',
+          storyBeat: ['introduction', 'resolution'],
+          interaction: 'solo'
+        }
+      }))
     }
   },
   {
@@ -150,7 +236,15 @@ export const CHARACTER_POSES: CharacterPose[] = [
     emotions: ['happy', 'attentive', 'loving'],
     actions: ['looking', 'following', 'playing'],
     variations: {
-      v2: assetMapping.poses.tom.interaction.v2.map(path => ({ path }))
+      v2: assetMapping.poses.tom.interaction.v2.map(path => ({
+        path,
+        tags: ['interaction', 'attentive', 'following'],
+        context: {
+          energy: 'medium',
+          storyBeat: ['introduction', 'action', 'resolution'],
+          interaction: 'with_tom'
+        }
+      }))
     }
   }
 ];
@@ -324,12 +418,117 @@ interface PoseSelectionResult extends PoseMatchResult {
   selectedVariation: string;
 }
 
-// Add character type to the pose matching
-export function findBestPose(description: string, character: 'maddie' | 'tom' = 'maddie'): PoseSelectionResult {
+// Add interface for variation selection
+export interface VariationContext {
+  timeOfDay?: string;
+  pageNumber: number;
+  totalPages: number;
+  previousPose?: string;
+  isWithTom: boolean;
+  sceneType: 'introduction' | 'action' | 'climax' | 'resolution';
+}
+
+// Update the pose selection function to use context
+export function selectPoseVariation(
+  pose: CharacterPose,
+  description: string,
+  context: VariationContext
+): string {
+  const variations = pose.variations.v2;
+  if (!variations || variations.length === 0) {
+    throw new Error(`No variations available for pose: ${pose.name}`);
+  }
+
+  console.log('\n=== Pose Variation Selection ===');
+  console.log('Selecting variation for pose:', pose.name);
+  console.log('Context:', context);
+
+  // Score each variation based on context
+  const scoredVariations = variations.map(variation => {
+    let score = 0;
+    const desc = description.toLowerCase();
+
+    // Score based on time of day if specified
+    if (context.timeOfDay && variation.context.timeOfDay?.includes(context.timeOfDay as any)) {
+      score += 2;
+    }
+
+    // Score based on story progression
+    const progressionPercent = context.pageNumber / context.totalPages;
+    if (progressionPercent <= 0.2 && variation.context.storyBeat.includes('introduction')) {
+      score += 3;
+    } else if (progressionPercent >= 0.8 && variation.context.storyBeat.includes('resolution')) {
+      score += 3;
+    } else if (progressionPercent > 0.6 && variation.context.storyBeat.includes('climax')) {
+      score += 3;
+    } else if (variation.context.storyBeat.includes('action')) {
+      score += 2;
+    }
+
+    // Score based on interaction context
+    if (context.isWithTom && variation.context.interaction === 'with_tom') {
+      score += 2;
+    } else if (!context.isWithTom && variation.context.interaction === 'solo') {
+      score += 2;
+    }
+
+    // Score based on energy level from description
+    const energyKeywords = {
+      high: ['run', 'jump', 'play', 'chase', 'excited', 'energetic'],
+      medium: ['walk', 'explore', 'discover', 'curious', 'interested'],
+      low: ['sit', 'rest', 'sleep', 'calm', 'quiet', 'peaceful']
+    };
+
+    if (energyKeywords.high.some(word => desc.includes(word)) && variation.context.energy === 'high') {
+      score += 2;
+    } else if (energyKeywords.medium.some(word => desc.includes(word)) && variation.context.energy === 'medium') {
+      score += 2;
+    } else if (energyKeywords.low.some(word => desc.includes(word)) && variation.context.energy === 'low') {
+      score += 2;
+    }
+
+    // Avoid repeating the exact same pose if possible
+    if (variation.path === context.previousPose) {
+      score -= 3;
+    }
+
+    // Score based on custom tags
+    variation.tags.forEach(tag => {
+      if (desc.includes(tag)) {
+        score += 1;
+      }
+    });
+
+    return { variation, score };
+  });
+
+  // Sort by score and add some randomness for variations with close scores
+  scoredVariations.sort((a, b) => b.score - a.score);
+  
+  // Group variations with similar scores (within 2 points of the highest score)
+  const highestScore = scoredVariations[0].score;
+  const topVariations = scoredVariations.filter(v => v.score >= highestScore - 2);
+
+  // Randomly select from top variations
+  const selected = topVariations[Math.floor(Math.random() * topVariations.length)];
+
+  console.log('Selected variation score:', selected.score);
+  console.log('Selected variation path:', selected.variation.path);
+
+  return selected.variation.path;
+}
+
+// Update findBestPose to use the new variation selection
+export function findBestPose(
+  description: string,
+  character: 'maddie' | 'tom' = 'maddie',
+  context: VariationContext
+): PoseSelectionResult {
   const desc = description.toLowerCase();
   console.log('\n=== Pose Matching Process ===');
   console.log('Character:', character);
   console.log('Scene description:', description);
+  console.log('Context:', context);
   
   // Filter poses based on character
   const characterPoses = CHARACTER_POSES.filter(pose => 
@@ -370,9 +569,8 @@ export function findBestPose(description: string, character: 'maddie' | 'tom' = 
     current.score > best.score ? current : best
   , { pose: characterPoses[0], score: -1, matches: { emotions: [], actions: [] } });
 
-  // Select a random variation from the available ones
-  const variations = bestMatch.pose.variations.v2;
-  const selectedVariation = variations[Math.floor(Math.random() * variations.length)].path;
+  // Select the best variation based on context
+  const selectedVariation = selectPoseVariation(bestMatch.pose, description, context);
 
   console.log('\n=== Selected Pose ===');
   console.log('Name:', bestMatch.pose.name);

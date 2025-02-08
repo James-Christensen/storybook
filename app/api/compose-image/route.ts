@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { findBestPose, findBestBackground, CHARACTER_POSES, BACKGROUNDS, CharacterPose, Background } from '../../../models/assets';
+import { findBestPose, findBestBackground, CHARACTER_POSES, BACKGROUNDS, CharacterPose, Background, VariationContext } from '../../../models/assets';
 import sharp from 'sharp';
 import path from 'path';
 import { storyLogger } from '../../../utils/storyLogger';
@@ -315,16 +315,38 @@ export async function POST(request: Request) {
   const startTime = Date.now();
   
   try {
-    const { description, pageNumber, storyId } = await request.json();
+    const { description, pageNumber, totalPages, storyId } = await request.json();
     console.log('\n=== Starting Image Composition ===');
     console.log('Processing scene description:', description);
     
     // Check if Tom is mentioned in the description
     const hasTom = description.toLowerCase().includes('tom');
+
+    // Determine time of day from description
+    const timeOfDay = description.toLowerCase().includes('night') ? 'night' :
+                     description.toLowerCase().includes('sunset') ? 'sunset' :
+                     description.toLowerCase().includes('morning') ? 'morning' : 'day';
+
+    // Determine story beat based on page position
+    const progress = pageNumber / totalPages;
+    const storyBeat = progress <= 0.2 ? 'introduction' as const :
+                     progress >= 0.8 ? 'resolution' as const :
+                     progress >= 0.6 ? 'climax' as const : 
+                     'action' as const;
+
+    // Create context for pose selection
+    const context: VariationContext = {
+      timeOfDay,
+      pageNumber,
+      totalPages,
+      isWithTom: hasTom,
+      sceneType: storyBeat,
+      previousPose: undefined // Could be stored and passed from previous page
+    };
     
     // Find the best matching poses and background
-    const maddiePoseMatch = findBestPose(description, 'maddie');
-    const tomPoseMatch = hasTom ? findBestPose(description, 'tom') : null;
+    const maddiePoseMatch = findBestPose(description, 'maddie', context);
+    const tomPoseMatch = hasTom ? findBestPose(description, 'tom', context) : null;
     const backgroundMatch = findBestBackground(description);
     
     console.log('\n=== Asset Selection Summary ===');
