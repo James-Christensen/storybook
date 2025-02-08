@@ -67,6 +67,53 @@ export interface StoryGenerationLog {
   error?: string;
 }
 
+export interface AssetMatchingLog {
+  pageNumber: number;
+  description: string;
+  metadata: {
+    character: {
+      selected: {
+        id: string;
+        name: string;
+        description: string;
+        emotions: string[];
+        actions: string[];
+      };
+      matchDetails: {
+        score: number;
+        matchedEmotions: string[];
+        matchedActions: string[];
+      };
+    };
+    background: {
+      selected: {
+        id: string;
+        name: string;
+        description: string;
+        settings: string[];
+        timeOfDay: string[];
+      };
+      matchDetails: {
+        score: number;
+        matchedSettings: string[];
+        contextualMatches: string[];
+      };
+    };
+    dimensions: {
+      width: number;
+      height: number;
+      character: {
+        width: number;
+        height: number;
+        position: {
+          left: number;
+          top: number;
+        };
+      };
+    };
+  };
+}
+
 export const storyLogger = {
   async logStoryGeneration(log: StoryGenerationLog) {
     try {
@@ -88,6 +135,31 @@ export const storyLogger = {
       return data;
     } catch (error) {
       console.error('Failed to log story generation:', error);
+    }
+  },
+
+  async logAssetMatching(log: AssetMatchingLog) {
+    try {
+      const response = await fetch('/api/log/asset-matching', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          timestamp: new Date().toISOString(),
+          ...log
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to log asset matching');
+      }
+
+      const data = await response.json();
+      console.log(`Asset matching logged to: ${data.filename}`);
+      return data;
+    } catch (error) {
+      console.error('Failed to log asset matching:', error);
     }
   }
 };
