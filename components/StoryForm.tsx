@@ -64,18 +64,50 @@ interface StoryFormProps {
 export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProps) {
   const [step, setStep] = useState(0);
   const [formData, setFormData] = useState<StoryRequest>({
-    mainCharacter: 'Maddie', // Default to Maddie since she's the only character in asset mode
+    mainCharacter: '',
     sidekick: 'None',
     setting: '',
     pageCount: 6,
     generationMode: 'asset'
   });
 
+  const renderCharacterSelector = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        <h2 className="text-3xl font-bold text-secondary">Meet Your Hero</h2>
+        <div className="badge badge-md badge-primary">Step 1</div>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
+        {ASSET_MODE_PRESETS.characters.map(preset => (
+          <button
+            key={preset.name}
+            type="button"
+            onClick={() => {
+              setFormData(prev => ({ ...prev, mainCharacter: preset.name }));
+              setStep(1);
+            }}
+            className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
+              formData.mainCharacter === preset.name ? 'border-primary border-2' : 'border-base-200'
+            }`}
+          >
+            <div className="card-body flex flex-col items-center justify-center text-center p-6 gap-4">
+              <span className="text-5xl mb-2">{preset.emoji}</span>
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold">{preset.name}</h3>
+                <p className="text-sm opacity-70 leading-snug">{preset.description}</p>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderSidekickSelector = () => (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-center gap-2 mb-6">
         <h2 className="text-3xl font-bold text-secondary">Choose a sidekick</h2>
-        <div className="badge badge-md badge-primary">Step 1</div>
+        <div className="badge badge-md badge-primary">Step 2</div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
         {ASSET_MODE_PRESETS.sidekicks.map(preset => (
@@ -84,7 +116,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             type="button"
             onClick={() => {
               setFormData(prev => ({ ...prev, sidekick: preset.name }));
-              setStep(1);
+              setStep(2);
             }}
             className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
               formData.sidekick === preset.name ? 'border-primary border-2' : 'border-base-200'
@@ -107,7 +139,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-center gap-2 mb-6">
         <h2 className="text-3xl font-bold text-secondary">Choose your adventure place</h2>
-        <div className="badge badge-md badge-primary">Step 2</div>
+        <div className="badge badge-md badge-primary">Step 3</div>
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 flex-1">
         {ASSET_MODE_PRESETS.settings.map(preset => (
@@ -116,7 +148,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
             type="button"
             onClick={() => {
               setFormData(prev => ({ ...prev, setting: preset.name }));
-              setStep(2);
+              setStep(3);
             }}
             className={`card bg-base-100 hover:bg-base-200 transition-all text-center items-center justify-center hover:scale-105 border select-none touch-manipulation ${
               formData.setting === preset.name ? 'border-primary border-2' : 'border-base-200'
@@ -166,10 +198,12 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
   const renderStep = () => {
     switch (step) {
       case 0:
-        return renderSidekickSelector();
+        return renderCharacterSelector();
       case 1:
-        return renderSettingSelector();
+        return renderSidekickSelector();
       case 2:
+        return renderSettingSelector();
+      case 3:
         return renderPageCountSelector();
       default:
         return null;
@@ -202,7 +236,7 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
                   </button>
                 )}
                 <div className="flex-1" />
-                {step === 2 && formData.pageCount && (
+                {step === 3 && formData.pageCount && (
                   <button
                     type="submit"
                     disabled={isLoading}
@@ -214,9 +248,10 @@ export default function StoryForm({ onSubmit, isLoading = false }: StoryFormProp
               </div>
 
               <ul className="steps steps-horizontal w-full mt-6">
-                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Sidekick</li>
-                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Place</li>
-                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Length</li>
+                <li className={`step ${step >= 0 ? 'step-primary' : ''}`}>Hero</li>
+                <li className={`step ${step >= 1 ? 'step-primary' : ''}`}>Sidekick</li>
+                <li className={`step ${step >= 2 ? 'step-primary' : ''}`}>Place</li>
+                <li className={`step ${step >= 3 ? 'step-primary' : ''}`}>Length</li>
               </ul>
             </div>
           </div>
