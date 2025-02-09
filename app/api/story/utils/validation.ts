@@ -15,8 +15,8 @@ export function validateStoryRequest(request: StoryRequest): void {
     // Check page count
     if (typeof request.pageCount !== 'number') {
         errors.push('Page count must be a number');
-    } else if (request.pageCount < 1) {
-        errors.push('Page count must be at least 1');
+    } else if (request.pageCount < 3 || request.pageCount > 10) {
+        errors.push('Page count must be between 3 and 10 pages');
     }
 
     // Check setting
@@ -30,8 +30,8 @@ export function validateStoryRequest(request: StoryRequest): void {
     }
 
     // Check generation mode
-    if (!['default', 'asset'].includes(request.generationMode)) {
-        errors.push('Generation mode must be either "default" or "asset"');
+    if (request.generationMode !== 'asset') {
+        errors.push('Generation mode must be "asset"');
     }
 
     // If any errors were found, throw them all at once
