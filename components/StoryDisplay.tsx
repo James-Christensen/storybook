@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Story, StoryPage, GenerationMode } from '../models/story';
+import { Story, StoryPage } from '../models/story';
 
 interface StoryDisplayProps {
-  story?: Story;
-  generationMode: GenerationMode;
+  story: Story | null;
 }
 
-export default function StoryDisplay({ story, generationMode }: StoryDisplayProps) {
+export default function StoryDisplay({ story }: StoryDisplayProps) {
   const [loadingImages, setLoadingImages] = useState<{ [key: number]: boolean }>({});
   const [images, setImages] = useState<{ [key: number]: string }>({});
   const [errors, setErrors] = useState<{ [key: number]: string }>({});
@@ -22,13 +21,14 @@ export default function StoryDisplay({ story, generationMode }: StoryDisplayProp
     setErrors(prev => ({ ...prev, [pageIndex]: '' }));
 
     try {
-      const endpoint = generationMode === 'asset' ? '/api/compose-image' : '/api/image';
-      const response = await fetch(endpoint, {
+      const response = await fetch('/api/compose-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           description: page.imageDescription,
-          // Add any mode-specific parameters here
+          pageNumber: pageIndex + 1,
+          totalPages: story.pages.length,
+          storyId: story.title.toLowerCase().replace(/[^a-z0-9]/g, '-')
         })
       });
 
@@ -37,13 +37,7 @@ export default function StoryDisplay({ story, generationMode }: StoryDisplayProp
       }
 
       const data = await response.json();
-      
-      // Handle different response formats for each mode
-      const imageUrl = generationMode === 'asset' 
-        ? data.imageData // Base64 image data from compose-image
-        : `data:image/png;base64,${data.images[0]}`; // Base64 image from AI generation
-
-      setImages(prev => ({ ...prev, [pageIndex]: imageUrl }));
+      setImages(prev => ({ ...prev, [pageIndex]: data.imageData }));
       
     } catch (error) {
       console.error('Image generation error:', error);
@@ -57,55 +51,46 @@ export default function StoryDisplay({ story, generationMode }: StoryDisplayProp
   };
 
   return (
-    <div className="max-w-4xl mx-auto mt-8 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">{story.title}</h1>
-        <p className="text-xl text-gray-600 italic">{story.subtitle}</p>
-      </div>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-2">{story.title}</h1>
+      <p className="text-xl text-gray-600 mb-8">{story.subtitle}</p>
       
       <div className="space-y-12">
         {story.pages.map((page, index) => (
-          <div key={index} className="flex flex-col md:flex-row gap-8 items-start">
-            <div className="flex-1 prose">
-              <h2 className="text-xl font-semibold mb-4">Page {page.pageNumber}</h2>
-              <p className="text-lg">{page.text}</p>
-            </div>
-            
-            <div className="w-full md:w-96">
-              {!images[index] && !loadingImages[index] && (
-                <button
-                  onClick={() => generateImage(page, index)}
-                  className={`w-full h-64 rounded-lg flex items-center justify-center border-2 border-dashed 
-                    ${errors[index] ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'}
-                    hover:bg-gray-100 transition-colors`}
-                >
-                  <div className="text-center p-4">
-                    <p className="text-gray-500">
-                      {errors[index] || 'Click to generate image'}
-                    </p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      Using {generationMode === 'asset' ? 'asset-based' : 'AI'} generation
-                    </p>
-                  </div>
-                </button>
-              )}
-              
-              {loadingImages[index] && (
-                <div className="w-full h-64 rounded-lg flex items-center justify-center bg-gray-50 border-2 border-gray-300">
-                  <div className="text-center">
-                    <div className="loading loading-spinner loading-lg"></div>
-                    <p className="text-gray-500 mt-4">Generating image...</p>
-                  </div>
+          <div key={index} className="card bg-base-100 shadow-xl">
+            <div className="card-body">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="flex-1">
+                  <p className="text-lg mb-4">{page.text}</p>
                 </div>
-              )}
-              
-              {images[index] && (
-                <img
-                  src={images[index]}
-                  alt={`Illustration for page ${page.pageNumber}`}
-                  className="w-full rounded-lg shadow-lg"
-                />
-              )}
+                <div className="flex-1">
+                  {images[index] ? (
+                    <img
+                      src={images[index]}
+                      alt={`Page ${index + 1}`}
+                      className="w-full rounded-lg shadow-lg"
+                    />
+                  ) : (
+                    <button
+                      onClick={() => generateImage(page, index)}
+                      disabled={loadingImages[index]}
+                      className="w-full aspect-square flex items-center justify-center bg-base-200 rounded-lg hover:bg-base-300 transition-colors"
+                    >
+                      {loadingImages[index] ? (
+                        <div className="loading loading-spinner loading-lg" />
+                      ) : errors[index] ? (
+                        <div className="text-error text-center p-4">
+                          {errors[index]}
+                        </div>
+                      ) : (
+                        <div className="text-center p-4">
+                          Click to generate illustration
+                        </div>
+                      )}
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         ))}

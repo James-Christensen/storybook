@@ -1,6 +1,7 @@
 import { AssetMatchDetails } from '../utils/storyLogger';
 
-export type GenerationMode = 'ai' | 'asset';
+// Only asset-based generation is supported
+export type GenerationMode = 'asset';
 
 export interface StoryRequest {
   mainCharacter: string;
