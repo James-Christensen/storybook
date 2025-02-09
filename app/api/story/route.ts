@@ -1,7 +1,6 @@
 import { Story, StoryRequest } from '../../../models/story';
 import { storyLogger } from '../../../utils/storyLogger';
-import { STORY_PROMPT } from './prompts/storyPrompt';
-import { ASSET_MODE_PROMPT } from './prompts/assetPrompt';
+import { ASSET_PROMPT } from './prompts/assetPrompt';
 import { generateStoryStructure, replaceTemplateVariables } from './utils/templateProcessor';
 import { validateStoryRequest } from './utils/validation';
 
@@ -9,7 +8,7 @@ import { validateStoryRequest } from './utils/validation';
  * Configuration for the LLM service
  */
 const OLLAMA_URL = 'http://192.168.0.131:11434/api/generate';
-const OLLAMA_MODEL = 'phi4'; //qwen2.5:32b or phi4. Phi4 is smaller and faster.
+const OLLAMA_MODEL = 'phi4';
 
 /**
  * Parses and validates the LLM response
@@ -30,7 +29,7 @@ async function parseStoryResponse(data: any): Promise<Story> {
  * - sidekick: string - Companion character name or "None"
  * - setting: string - Story location/environment
  * - pageCount: number - Number of pages (must be ≥ 2)
- * - generationMode: "default" | "asset" - Whether to use pre-made assets
+ * - generationMode: "asset" - Using pre-made assets
  * 
  * Output (Success):
  * {
@@ -41,7 +40,7 @@ async function parseStoryResponse(data: any): Promise<Story> {
  *     text: string - 2-3 sentences of story content
  *     imageDescription: string - Detailed scene description
  *   }>
- *   generationMode: "default" | "asset"
+ *   generationMode: "asset"
  * }
  * 
  * Output (Error):
@@ -85,10 +84,7 @@ export async function POST(request: Request) {
 
         // Generate the story structure and process the template
         const structure = generateStoryStructure(storyRequest);
-        const basePrompt = storyRequest.generationMode === 'asset' 
-            ? `${STORY_PROMPT}\n${ASSET_MODE_PROMPT}` 
-            : STORY_PROMPT;
-        const prompt = replaceTemplateVariables(basePrompt, storyRequest, structure);
+        const prompt = replaceTemplateVariables(ASSET_PROMPT, storyRequest, structure);
         
         console.log('Sending prompt to Ollama:', prompt);
 
