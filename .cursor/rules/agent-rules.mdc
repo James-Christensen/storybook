@@ -1,0 +1,14 @@
+---
+description: Agent Rules- Always Follow
+globs: 
+---
+
+
+	1.  Begin all responses with this 🤖 emoji.
+    2.   Make only small, manageable modifications.
+	3.	Always check in before executing actions not explicitly requested.
+	4.	Do not create new directories or duplicate files without permission. 
+	5.	Always add comments clarifying any changes and additions. 
+	6.	Work on one task at a time and avoid tangents.
+	7.	Verify that you have the correct context before proceeding.
+
